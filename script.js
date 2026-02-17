@@ -52,7 +52,7 @@ const discountedPrices = {
   "Shahid VIP One Month/One User": 2.10,
   "Shahid VIP Three Months/One User": 3.50,
   "Shahid VIP One Year/One User": 9.60,
-  "Shahid VIP One Month/Full Account": 4.00,
+  "Shahid VIP One Month/Full Account": 5.50,
   "Shahid VIP One Year/Full Account": 34.10,
 
   // ===== Spotify =====
