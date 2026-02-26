@@ -1912,10 +1912,26 @@ const db = getFirestore(app);
 async function loadProducts() {
   const querySnapshot = await getDocs(collection(db, "products"));
 
+  const phonesGrid = document.querySelector("#phones-items .items-grid");
+
   querySnapshot.forEach((doc) => {
     const data = doc.data();
 
-    console.log("Loaded product:", data.name);
+    const productCard = `
+      <div class="item-card">
+        <img src="${data.image}" alt="${data.name}" />
+        <p class="item-name">${data.name}</p>
+        <p class="item-price">$${data.price}</p>
+        <div class="quantity-container">
+          <button class="qty-btn minus">-</button>
+          <input type="number" class="qty-input" value="1" min="1">
+          <button class="qty-btn plus">+</button>
+        </div>
+        <button class="add-to-cart">Add to Cart</button>
+      </div>
+    `;
+
+    phonesGrid.innerHTML += productCard;
   });
 }
 
