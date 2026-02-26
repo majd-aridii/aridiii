@@ -1893,7 +1893,34 @@
     </div>
     <p>&copy; 2025 Aridii Tech. All Rights Reserved.</p>
   </footer>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+const firebaseConfig = {
+  apiKey: "AIzaSyAn9L3zdvL39DZGHnXM3XmiJAPyNZgr5c8",
+  authDomain: "aridiitechadmin.firebaseapp.com",
+  projectId: "aridiitechadmin",
+  storageBucket: "aridiitechadmin.firebasestorage.app",
+  messagingSenderId: "623026525253",
+  appId: "1:623026525253:web:b80ffb3324a68314d33f2c"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+async function loadProducts() {
+  const querySnapshot = await getDocs(collection(db, "products"));
+
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+
+    console.log("Loaded product:", data.name);
+  });
+}
+
+loadProducts();
+</script>
   <script src="script.js"></script>
 </body>
 </html>
