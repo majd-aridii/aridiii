@@ -10,11 +10,9 @@
       padding:40px;
     }
 
-    h1{
-      color:#F5C542;
-    }
+    h1{ color:#F5C542; }
 
-    .box{
+    .card{
       background:rgba(255,255,255,.05);
       padding:20px;
       border-radius:16px;
@@ -22,14 +20,38 @@
       margin-top:20px;
     }
 
+    input{
+      display:block;
+      width:100%;
+      margin:10px 0;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.2);
+      background:rgba(255,255,255,.05);
+      color:white;
+    }
+
     button{
-      margin-top:20px;
       padding:10px 14px;
       border-radius:10px;
       border:0;
       cursor:pointer;
       background:#F5C542;
       font-weight:bold;
+      margin-top:10px;
+    }
+
+    .product{
+      background:rgba(255,255,255,.05);
+      padding:10px;
+      margin-top:10px;
+      border-radius:10px;
+    }
+
+    .delete-btn{
+      background:#FF4D6D;
+      color:white;
+      margin-left:10px;
     }
   </style>
 </head>
@@ -37,9 +59,18 @@
 
 <h1>Admin Dashboard</h1>
 
-<div class="box">
-  <p>Welcome Admin 👑</p>
-  <p>This is your private control panel.</p>
+<div class="card">
+  <h3>Add Product</h3>
+  <input id="name" placeholder="Product Name">
+  <input id="price" type="number" placeholder="Price">
+  <input id="category" placeholder="Category (phones, music, etc)">
+  <input id="image" placeholder="Image URL">
+  <button onclick="addProduct()">Add Product</button>
+</div>
+
+<div class="card">
+  <h3>Products</h3>
+  <div id="productList"></div>
 </div>
 
 <button onclick="logout()">Logout</button>
@@ -47,26 +78,66 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAn9L3zdvL39DZGHnXM3XmiJAPyNZgr5c8",
-    authDomain: "aridiitechadmin.firebaseapp.com",
-    projectId: "aridiitechadmin",
-    storageBucket: "aridiitechadmin.firebasestorage.app",
-    messagingSenderId: "623026525253",
-    appId: "1:623026525253:web:b80ffb3324a68314d33f2c",
-    measurementId: "G-EY8B6BY289"
-  };
-
+const firebaseConfig = {
+  apiKey: "AIzaSyAn9L3zdvL39DZGHnXM3XmiJAPyNZgr5c8",
+  authDomain: "aridiitechadmin.firebaseapp.com",
+  projectId: "aridiitechadmin",
+  storageBucket: "aridiitechadmin.firebasestorage.app",
+  messagingSenderId: "623026525253",
+  appId: "1:623026525253:web:b80ffb3324a68314d33f2c"
+};
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 window.logout = function(){
   signOut(auth).then(() => {
     window.location.href = "admin-login.html";
   });
 }
+
+window.addProduct = async function(){
+  const name = document.getElementById("name").value;
+  const price = Number(document.getElementById("price").value);
+  const category = document.getElementById("category").value;
+  const image = document.getElementById("image").value;
+
+  await addDoc(collection(db, "products"), {
+    name,
+    price,
+    category,
+    image
+  });
+
+  loadProducts();
+}
+
+async function loadProducts(){
+  const querySnapshot = await getDocs(collection(db, "products"));
+  const list = document.getElementById("productList");
+  list.innerHTML = "";
+
+  querySnapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+
+    list.innerHTML += `
+      <div class="product">
+        ${data.name} - $${data.price}
+        <button class="delete-btn" onclick="deleteProduct('${docSnap.id}')">Delete</button>
+      </div>
+    `;
+  });
+}
+
+window.deleteProduct = async function(id){
+  await deleteDoc(doc(db, "products", id));
+  loadProducts();
+}
+
+loadProducts();
 </script>
 
 </body>
