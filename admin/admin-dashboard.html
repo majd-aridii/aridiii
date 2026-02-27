@@ -54,6 +54,8 @@
     .delete-btn{
       background:#FF4D6D;
       color:white;
+      padding:6px 10px;
+      border-radius:8px;
     }
   </style>
 </head>
@@ -88,7 +90,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyAn9L3zdvL39DZGHnXM3XmiJAPyNZgr5c8",
   authDomain: "aridiitechadmin.firebaseapp.com",
   projectId: "aridiitechadmin",
-  storageBucket: "aridiitechadmin.appspot.com",
+  storageBucket: "aridiitechadmin.firebasestorage.app",
   messagingSenderId: "623026525253",
   appId: "1:623026525253:web:b80ffb3324a68314d33f2c"
 };
@@ -96,7 +98,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
+
+/* 🔥 IMPORTANT — FORCE CORRECT BUCKET */
+const storage = getStorage(app, "gs://aridiitechadmin.firebasestorage.app");
 
 /* ================= LOGOUT ================= */
 
@@ -125,13 +129,12 @@ async function addProduct(){
     const fileName = Date.now() + "_" + imageFile.name;
     const imageRef = ref(storage, "products/" + fileName);
 
-    // Upload image
+    console.log("Uploading to bucket:", storage.app.options.storageBucket);
+
     await uploadBytes(imageRef, imageFile);
 
-    // Get URL
     const imageURL = await getDownloadURL(imageRef);
 
-    // Save product
     await addDoc(collection(db, "products"), {
       name,
       price,
@@ -141,7 +144,6 @@ async function addProduct(){
 
     alert("Product Added Successfully!");
 
-    // Clear inputs
     document.getElementById("productName").value = "";
     document.getElementById("productPrice").value = "";
     document.getElementById("productCategory").value = "";
@@ -150,8 +152,8 @@ async function addProduct(){
     loadProducts();
 
   } catch(error){
-    console.error("Error adding product:", error);
-    alert("Error adding product. Check console.");
+    console.error("Upload Error:", error);
+    alert("Upload failed. Check console.");
   }
 }
 
@@ -185,13 +187,10 @@ async function loadProducts(){
 
 /* ================= EVENTS ================= */
 
-window.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("addProductBtn")
-    .addEventListener("click", addProduct);
+document.getElementById("addProductBtn")
+  .addEventListener("click", addProduct);
 
-  loadProducts();
-});
-
+loadProducts();
 
 </script>
 
