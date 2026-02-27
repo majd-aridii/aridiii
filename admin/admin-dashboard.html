@@ -106,18 +106,36 @@ window.logout = function(){
 }
 
 window.addProduct = async function(){
-  const name = document.getElementById("name").value;
-  const price = Number(document.getElementById("price").value);
-  const category = document.getElementById("category").value;
-  const image = document.getElementById("image").value;
 
+  const name = document.getElementById("productName").value;
+  const price = Number(document.getElementById("productPrice").value);
+  const category = document.getElementById("productCategory").value;
+  const imageFile = document.getElementById("productImage").files[0];
+
+  if (!name || !price || !category || !imageFile) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  // Create unique filename
+  const fileName = Date.now() + "_" + imageFile.name;
+  const imageRef = ref(storage, "products/" + fileName);
+
+  // Upload image to Storage
+  await uploadBytes(imageRef, imageFile);
+
+  // Get image URL
+  const imageURL = await getDownloadURL(imageRef);
+
+  // Save product in Firestore
   await addDoc(collection(db, "products"), {
     name,
     price,
     category,
-    image
+    image: imageURL
   });
 
+  alert("Product Added Successfully!");
   loadProducts();
 }
 
