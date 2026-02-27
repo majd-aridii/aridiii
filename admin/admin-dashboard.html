@@ -185,12 +185,13 @@ async function loadProducts(){
 
 /* ================= EVENTS ================= */
 
-document.getElementById("addProductBtn")
-  .addEventListener("click", addProduct);
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("addProductBtn")
+    .addEventListener("click", addProduct);
 
-/* ================= INIT ================= */
+  loadProducts();
+});
 
-loadProducts();
 
 </script>
 
