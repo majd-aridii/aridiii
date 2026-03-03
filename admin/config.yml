@@ -1,17 +1,20 @@
 backend:
-  name: git-gateway
+  name: github
+  repo: majd-aridii / aridiii   # ⚠️ change if your repo name is different
   branch: main
 
 media_folder: "images/uploads"
 public_folder: "/images/uploads"
 
 collections:
-  - name: "home"
-    label: "Home Page"
-    files:
-      - file: "content/home.json"
-        label: "Home Content"
-        name: "home"
-        fields:
-          - { label: "Hero Title", name: "hero_title", widget: "string" }
-          - { label: "Hero Description", name: "hero_desc", widget: "text" }
+  - name: "products"
+    label: "Products"
+    folder: "content/products"
+    create: true
+    slug: "{{slug}}"
+    format: "json"
+    fields:
+      - { label: "Product Name", name: "name", widget: "string" }
+      - { label: "Price ($)", name: "price", widget: "number" }
+      - { label: "Category", name: "category", widget: "string" }
+      - { label: "Image", name: "image", widget: "image" }
