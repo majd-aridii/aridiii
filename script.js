@@ -1052,23 +1052,26 @@ window.navigateToSearchCategory = navigateToSearchCategory;
 // ===============================
 async function loadProductsFromCMS() {
   try {
-    const response = await fetch("/content/products.json");
-    const data = await response.json();
+    const response = await fetch("/content/products/");
+    const files = await response.json();
 
-    if (!data.products || !Array.isArray(data.products)) return;
+    if (!Array.isArray(files)) return;
 
-    data.products.forEach(product => {
-      if (!product.active) return;
+    for (const file of files) {
+      const productResponse = await fetch(`/content/products/${file}`);
+      const product = await productResponse.json();
 
-      const section = document.getElementById(product.section);
-      if (!section) return;
+      if (!product.active) continue;
+
+      const section = document.getElementById(product.category);
+      if (!section) continue;
 
       const grid = section.querySelector(".items-grid");
-      if (!grid) return;
+      if (!grid) continue;
 
       const card = document.createElement("div");
       card.className = "item-card";
-      card.setAttribute("data-keywords", product.keywords || "");
+      card.setAttribute("data-keywords", product.name.toLowerCase());
 
       card.innerHTML = `
         <img src="${product.image}" alt="${product.name}" />
@@ -1083,7 +1086,7 @@ async function loadProductsFromCMS() {
       `;
 
       grid.appendChild(card);
-    });
+    }
 
   } catch (error) {
     console.error("CMS Load Error:", error);
