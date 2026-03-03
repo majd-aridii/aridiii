@@ -6,14 +6,28 @@ media_folder: "images/uploads"
 public_folder: "/images/uploads"
 
 collections:
-  - name: "products"
-    label: "Products"
-    folder: "content/products"
-    create: true
-    slug: "{{slug}}"
-    format: "json"
-    fields:
-      - { label: "Product Name", name: "name", widget: "string" }
-      - { label: "Price ($)", name: "price", widget: "number" }
-      - { label: "Category", name: "category", widget: "string" }
-      - { label: "Image", name: "image", widget: "image" }
+  - name: "store"
+    label: "Store"
+    files:
+      - label: "Products"
+        name: "products"
+        file: "content/products.json"
+        fields:
+          - label: "Products"
+            name: "products"
+            widget: "list"
+            fields:
+              - { label: "Product Name", name: "name", widget: "string" }
+
+              - label: "Section ID"
+                name: "section"
+                widget: "string"
+                hint: "Example: netflix-items OR mtc-items OR pubg-items"
+
+              - { label: "Price", name: "price", widget: "number" }
+
+              - { label: "Image", name: "image", widget: "image" }
+
+              - { label: "Keywords", name: "keywords", widget: "string", required: false }
+
+              - { label: "Active", name: "active", widget: "boolean", default: true }
