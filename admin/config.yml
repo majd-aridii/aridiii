@@ -6,11 +6,11 @@ media_folder: "images/uploads"
 public_folder: "/images/uploads"
 
 collections:
-  - name: "pages"
-    label: "Pages"
+  - name: "home"
+    label: "Home Page"
     files:
-      - file: "index.html"
-        label: "Home Page"
+      - file: "content/home.json"
+        label: "Home Content"
         name: "home"
         fields:
           - { label: "Hero Title", name: "hero_title", widget: "string" }
