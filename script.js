@@ -1026,6 +1026,7 @@ function initializeApp() {
 
   setTimeout(openPrizeModal, 800);
 
+  loadProductsFromCMS();
   // ✅ IMPORTANT: set first history entry so phone back works correctly
   syncHistory(true);
 }
@@ -1045,5 +1046,48 @@ window.enhancedSearch = enhancedSearch;
 window.clearSearch = clearSearch;
 window.addSearchItemToCart = addSearchItemToCart;
 window.navigateToSearchCategory = navigateToSearchCategory;
+
+// ===============================
+// CMS DYNAMIC PRODUCTS LOADER
+// ===============================
+async function loadProductsFromCMS() {
+  try {
+    const response = await fetch("/content/products.json");
+    const data = await response.json();
+
+    if (!data.products || !Array.isArray(data.products)) return;
+
+    data.products.forEach(product => {
+      if (!product.active) return;
+
+      const section = document.getElementById(product.section);
+      if (!section) return;
+
+      const grid = section.querySelector(".items-grid");
+      if (!grid) return;
+
+      const card = document.createElement("div");
+      card.className = "item-card";
+      card.setAttribute("data-keywords", product.keywords || "");
+
+      card.innerHTML = `
+        <img src="${product.image}" alt="${product.name}" />
+        <p class="item-name">${product.name}</p>
+        <p class="item-price">$${Number(product.price).toFixed(2)}</p>
+        <div class="quantity-container">
+          <button class="qty-btn minus">-</button>
+          <input type="number" class="qty-input" value="1" min="1">
+          <button class="qty-btn plus">+</button>
+        </div>
+        <button class="add-to-cart">Add to Cart</button>
+      `;
+
+      grid.appendChild(card);
+    });
+
+  } catch (error) {
+    console.error("CMS Load Error:", error);
+  }
+}
 
 document.addEventListener("DOMContentLoaded", initializeApp);
