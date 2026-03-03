@@ -1,6 +1,5 @@
 backend:
-  name: github
-  repo: majd-aridii/aridiii
+  name: git-gateway
   branch: main
 
 media_folder: "images/uploads"
