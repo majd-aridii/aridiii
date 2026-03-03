@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: majd-aridii / aridiii   # ⚠️ change if your repo name is different
+  repo: majd-aridii/aridiii
   branch: main
 
 media_folder: "images/uploads"
