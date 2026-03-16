@@ -8,7 +8,7 @@ let activeCard = null;
 // RAMADAN COUPON SYSTEM
 // ===============================
 let appliedCoupon = null;
-const RAMADAN_COUPON = "Ramadan26";
+const RAMADAN_COUPON = "";
 
 /*
 🔥🔥🔥 EDIT DISCOUNTED PRICES HERE 🔥🔥🔥
