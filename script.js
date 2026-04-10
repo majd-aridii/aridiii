@@ -8,7 +8,7 @@ let activeCard = null;
 // RAMADAN COUPON SYSTEM
 // ===============================
 let appliedCoupon = null;
-const RAMADAN_COUPON = "";
+const RAMADAN_COUPON = "Ramadan26";
 
 /*
 🔥🔥🔥 EDIT DISCOUNTED PRICES HERE 🔥🔥🔥
@@ -702,49 +702,114 @@ function showCartNotification(message) {
   setTimeout(() => notification.remove(), 1600);
 }
 
-function checkout() {
-  if (cart.length === 0) return;
+async function checkout() {
+    console.log("Checkout clicked");
+    console.log("Cart:", cart);
+    console.log("Selected payment:", document.querySelector('input[name="payment"]:checked'));
+    if (cart.length === 0) return;
 
-  const selectedPayment = document.querySelector('input[name="payment"]:checked');
-  if (!selectedPayment) {
-    showCartNotification("Please select a payment method");
-    return;
-  }
-
-  const paymentMethod = selectedPayment.value;
-  const paymentMethods = { wishmoney: "Wish Money", omt: "OMT", cash: "Cash" };
-
-  let message = `Hello! I would like to purchase the following items:\n\n`;
-  let total = 0;
-
-  cart.forEach((item) => {
-    const finalPrice = getFinalPrice(item);
-
-    if (finalPrice > 0) {
-      const itemTotal = finalPrice * item.quantity;
-      total += itemTotal;
-      message += `• ${item.name} (Qty: ${item.quantity}) - $${itemTotal.toFixed(2)}\n`;
-    } else {
-      message += `• ${item.name} (Qty: ${item.quantity}) - Price to be determined\n`;
+    const selectedPayment = document.querySelector('input[name="payment"]:checked');
+    if (!selectedPayment) {
+        showCartNotification("Please select a payment method");
+        return;
     }
-  });
 
-  message += total > 0 ? `\nTotal: $${total.toFixed(2)}` : `\nTotal: Price to be determined`;
+    const paymentMethod = selectedPayment.value;
+    const paymentMethods = {
+        wishmoney: "wish",
+        omt: "omt",
+        cash: "cash"
+    };
 
-  if (appliedCoupon) message += `\nCoupon: ${appliedCoupon}`;
-  message += `\nPayment Method: ${paymentMethods[paymentMethod]}`;
-  message += `\n\nPlease confirm my order.`;
+    const backendPaymentMethod = paymentMethods[paymentMethod] || "cash";
 
-  const whatsappUrl = `https://wa.me/96171450495?text=${encodeURIComponent(message)}`;
-  window.open(whatsappUrl, "_blank");
+    let total = 0;
 
-  cart = [];
-  appliedCoupon = null;
-  updateCartDisplay();
-  closeCart();
+    const orderItems = cart.map((item) => {
+        const finalPrice = getFinalPrice(item);
+        const itemTotal = finalPrice * item.quantity;
+        total += itemTotal;
+
+        return {
+            name: item.name,
+            price: finalPrice,
+            quantity: item.quantity
+        };
+    });
+
+    const customerName = prompt("Enter your name:");
+    if (!customerName || !customerName.trim()) {
+        showCartNotification("Customer name is required");
+        return;
+    }
+
+    const phone = prompt("Enter your phone number:");
+    if (!phone || !phone.trim()) {
+        showCartNotification("Phone number is required");
+        return;
+    }
+
+    const orderData = {
+        customerName: customerName.trim(),
+        phone: phone.trim(),
+        paymentMethod: backendPaymentMethod,
+        items: orderItems,
+        totalAmount: total
+    };
+
+    try {
+        await sendOrderToBackend(orderData);
+
+        let message = `Hello! I would like to purchase the following items:\n\n`;
+
+        orderItems.forEach((item) => {
+            const itemTotal = item.price * item.quantity;
+            message += `• ${item.name} (Qty: ${item.quantity}) - $${itemTotal.toFixed(2)}\n`;
+        });
+
+        message += `\nTotal: $${total.toFixed(2)}`;
+        if (appliedCoupon) message += `\nCoupon: ${appliedCoupon}`;
+        message += `\nPayment Method: ${paymentMethod}`;
+        message += `\nCustomer Name: ${customerName.trim()}`;
+        message += `\nPhone: ${phone.trim()}`;
+        message += `\n\nPlease confirm my order.`;
+
+        const whatsappUrl = `https://wa.me/96171450495?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, "_blank");
+
+        showCartNotification("Order saved successfully!");
+
+        cart = [];
+        appliedCoupon = null;
+        updateCartDisplay();
+        closeCart();
+    } catch (error) {
+        showCartNotification("Failed to save order to server");
+    }
 }
 
+async function sendOrderToBackend(orderData) {
+    try {
+        const response = await fetch("http://localhost:5000/api/orders", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(orderData),
+        });
 
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Failed to save order");
+        }
+
+        return data;
+    } catch (error) {
+        console.error("Error sending order to backend:", error);
+        throw error;
+    }
+}
 
 // ========== ITEM MANAGEMENT ==========
 function handleAddToCart(e) {
