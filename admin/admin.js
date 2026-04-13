@@ -6,43 +6,122 @@ let categories = [];
 let subcategories = [];
 let coupons = [];
 
-const sidebar = document.getElementById("sidebar");
-const menuToggle = document.getElementById("menuToggle");
-const sidebarOverlay = document.getElementById("sidebarOverlay");
-const productCategorySelect = document.getElementById("productCategory");
-
-function openSidebar() {
-  sidebar?.classList.add("open");
-  sidebarOverlay?.classList.add("show");
+function getToken() {
+  return localStorage.getItem("adminToken");
 }
 
-function closeSidebar() {
-  sidebar?.classList.remove("open");
-  sidebarOverlay?.classList.remove("show");
+function setToken(token) {
+  localStorage.setItem("adminToken", token);
 }
 
-menuToggle?.addEventListener("click", () => {
-  const isOpen = sidebar.classList.contains("open");
-  if (isOpen) {
-    closeSidebar();
-  } else {
-    openSidebar();
+function clearToken() {
+  localStorage.removeItem("adminToken");
+}
+
+function logoutAdmin() {
+  clearToken();
+  window.location.href = "login.html";
+}
+
+async function loginAdmin(event) {
+  if (event) event.preventDefault();
+
+  const usernameInput = document.getElementById("loginUsername");
+  const passwordInput = document.getElementById("loginPassword");
+  const message = document.getElementById("loginMessage");
+
+  const username = usernameInput ? usernameInput.value.trim() : "";
+  const password = passwordInput ? passwordInput.value.trim() : "";
+
+  if (message) message.textContent = "";
+
+  if (!username || !password) {
+    if (message) message.textContent = "Please enter username and password";
+    return;
   }
-});
 
-sidebarOverlay?.addEventListener("click", closeSidebar);
+  try {
+    if (message) message.textContent = "Logging in...";
 
-document.querySelectorAll(".menu-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".menu-btn").forEach((b) => b.classList.remove("active"));
-    document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+    const res = await fetch(`${API_BASE}/admin/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ username, password })
+    });
 
-    btn.classList.add("active");
-    document.getElementById(btn.dataset.target).classList.add("active");
-    closeSidebar();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || "Login failed");
+    }
+
+    setToken(data.token);
+
+    if (message) message.textContent = "Login successful";
+
+    window.location.href = "dashboard.html";
+  } catch (error) {
+    console.error("Login error:", error);
+    if (message) message.textContent = error.message || "Something went wrong";
+  }
+}
+
+function authHeaders() {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${getToken()}`
+  };
+}
+
+async function apiGet(url) {
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${getToken()}`
+    }
   });
-});
+
+  const data = await res.json();
+
+  if (res.status === 401) {
+    clearToken();
+    window.location.href = "login.html";
+    throw new Error("Unauthorized");
+  }
+
+  if (!res.ok) {
+    throw new Error(data.message || "Request failed");
+  }
+
+  return data;
+}
+
+async function apiSend(url, method, body) {
+  const config = {
+    method,
+    headers: authHeaders()
+  };
+
+  if (method !== "DELETE") {
+    config.body = JSON.stringify(body);
+  }
+
+  const res = await fetch(url, config);
+  const data = await res.json();
+
+  if (res.status === 401) {
+    clearToken();
+    window.location.href = "login.html";
+    throw new Error("Unauthorized");
+  }
+
+  if (!res.ok) {
+    throw new Error(data.message || "Request failed");
+  }
+
+  return data;
+}
 
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
@@ -64,29 +143,6 @@ function escapeHtml(text) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
-}
-
-async function apiGet(url) {
-  const res = await fetch(url);
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Request failed");
-  return data;
-}
-
-async function apiSend(url, method, body) {
-  const config = {
-    method,
-    headers: { "Content-Type": "application/json" }
-  };
-
-  if (method !== "DELETE") {
-    config.body = JSON.stringify(body);
-  }
-
-  const res = await fetch(url, config);
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Request failed");
-  return data;
 }
 
 async function loadOrders() {
@@ -117,12 +173,12 @@ async function loadCoupons() {
 function getAnalytics() {
   const revenue = orders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
   const transactions = orders.length;
-  const completed = orders.filter((order) => order.status === "completed").length;
+  const completed = orders.filter(order => order.status === "completed").length;
 
   const itemMap = {};
 
-  orders.forEach((order) => {
-    safeArray(order.items).forEach((item) => {
+  orders.forEach(order => {
+    safeArray(order.items).forEach(item => {
       const name = item.name || "Unnamed Item";
       const quantity = Number(item.quantity || 1);
       itemMap[name] = (itemMap[name] || 0) + quantity;
@@ -151,27 +207,41 @@ function getAnalytics() {
 function updateDashboardStats() {
   const analytics = getAnalytics();
 
-  document.getElementById("statRevenue").textContent = formatMoney(analytics.revenue);
-  document.getElementById("statTransactions").textContent = analytics.transactions;
-  document.getElementById("statCompleted").textContent = analytics.completed;
-  document.getElementById("statBestSeller").textContent = analytics.bestSeller;
-  document.getElementById("statBestSellerQty").textContent = `${analytics.bestSellerQty} sold`;
+  const statRevenue = document.getElementById("statRevenue");
+  const statTransactions = document.getElementById("statTransactions");
+  const statCompleted = document.getElementById("statCompleted");
+  const statBestSeller = document.getElementById("statBestSeller");
+  const statBestSellerQty = document.getElementById("statBestSellerQty");
+  const businessSummary = document.getElementById("businessSummary");
+  const quickCounts = document.getElementById("quickCounts");
+  const reportSummary = document.getElementById("reportSummary");
 
-  document.getElementById("businessSummary").textContent =
+  if (statRevenue) statRevenue.textContent = formatMoney(analytics.revenue);
+  if (statTransactions) statTransactions.textContent = analytics.transactions;
+  if (statCompleted) statCompleted.textContent = analytics.completed;
+  if (statBestSeller) statBestSeller.textContent = analytics.bestSeller;
+  if (statBestSellerQty) statBestSellerQty.textContent = `${analytics.bestSellerQty} sold`;
+
+  if (businessSummary) {
+    businessSummary.textContent =
 `Total Revenue: ${formatMoney(analytics.revenue)}
 Transactions: ${analytics.transactions}
 Completed Orders: ${analytics.completed}
 Best Selling Item: ${analytics.bestSeller}
 Best Seller Quantity: ${analytics.bestSellerQty}`;
+  }
 
-  document.getElementById("quickCounts").textContent =
+  if (quickCounts) {
+    quickCounts.textContent =
 `Products: ${products.length}
 Categories: ${categories.length}
 Subcategories: ${subcategories.length}
 Coupons: ${coupons.length}
 Orders: ${orders.length}`;
+  }
 
-  document.getElementById("reportSummary").textContent =
+  if (reportSummary) {
+    reportSummary.textContent =
 `ARIDII TECH REPORT
 
 Revenue: ${formatMoney(analytics.revenue)}
@@ -185,6 +255,7 @@ Categories: ${categories.length}
 Subcategories: ${subcategories.length}
 Coupons: ${coupons.length}
 Orders: ${orders.length}`;
+  }
 }
 
 function populateCategorySelects() {
@@ -193,11 +264,11 @@ function populateCategorySelects() {
     document.getElementById("subcategoryCategory")
   ];
 
-  categorySelects.forEach((select) => {
+  categorySelects.forEach(select => {
     if (!select) return;
     select.innerHTML =
       `<option value="">Select category</option>` +
-      categories.map((cat) => `<option value="${cat._id}">${escapeHtml(cat.name)}</option>`).join("");
+      categories.map(cat => `<option value="${cat._id}">${escapeHtml(cat.name)}</option>`).join("");
   });
 }
 
@@ -206,7 +277,7 @@ function populateSubcategorySelects(categoryId = "") {
   if (!select) return;
 
   const filtered = categoryId
-    ? subcategories.filter((sub) => {
+    ? subcategories.filter(sub => {
         const subCatId = typeof sub.category === "object" ? sub.category?._id : sub.category;
         return subCatId === categoryId;
       })
@@ -214,18 +285,17 @@ function populateSubcategorySelects(categoryId = "") {
 
   select.innerHTML =
     `<option value="">No subcategory</option>` +
-    filtered.map((sub) => `<option value="${sub._id}">${escapeHtml(sub.name)}</option>`).join("");
+    filtered.map(sub => `<option value="${sub._id}">${escapeHtml(sub.name)}</option>`).join("");
 }
-
-productCategorySelect?.addEventListener("change", (e) => {
-  populateSubcategorySelects(e.target.value);
-});
 
 function renderOrders() {
   const body = document.getElementById("ordersTableBody");
-  const search = document.getElementById("orderSearch").value.trim().toLowerCase();
+  const searchInput = document.getElementById("orderSearch");
+  if (!body || !searchInput) return;
 
-  const filtered = orders.filter((order) => {
+  const search = searchInput.value.trim().toLowerCase();
+
+  const filtered = orders.filter(order => {
     const text = `
       ${order.customerName || ""}
       ${order.phone || ""}
@@ -241,8 +311,8 @@ function renderOrders() {
     return;
   }
 
-  body.innerHTML = filtered.map((order) => {
-    const itemsHtml = safeArray(order.items).map((item) => `
+  body.innerHTML = filtered.map(order => {
+    const itemsHtml = safeArray(order.items).map(item => `
       <div class="item-row">
         ${escapeHtml(item.name || "Item")} — ${Number(item.quantity || 1)} x ${formatMoney(item.price || 0)}
       </div>
@@ -255,9 +325,7 @@ function renderOrders() {
         <td>${escapeHtml(order.paymentMethod || "—")}</td>
         <td><div class="item-list">${itemsHtml || '<span class="muted">No items</span>'}</div></td>
         <td>${formatMoney(order.totalAmount)}</td>
-        <td>
-          <span class="badge ${escapeHtml(order.status || "pending")}">${escapeHtml(order.status || "pending")}</span>
-        </td>
+        <td><span class="badge ${escapeHtml(order.status || "pending")}">${escapeHtml(order.status || "pending")}</span></td>
         <td>${formatDate(order.createdAt)}</td>
         <td>
           <div class="actions">
@@ -290,9 +358,12 @@ async function changeOrderStatus(id, status) {
 
 function renderProducts() {
   const body = document.getElementById("productsTableBody");
-  const search = document.getElementById("productSearch").value.trim().toLowerCase();
+  const searchInput = document.getElementById("productSearch");
+  if (!body || !searchInput) return;
 
-  const filtered = products.filter((product) => {
+  const search = searchInput.value.trim().toLowerCase();
+
+  const filtered = products.filter(product => {
     const categoryName = product.category?.name || "";
     const subcategoryName = product.subcategory?.name || "";
     const text = `${product.name || ""} ${categoryName} ${subcategoryName}`.toLowerCase();
@@ -304,7 +375,7 @@ function renderProducts() {
     return;
   }
 
-  body.innerHTML = filtered.map((product) => `
+  body.innerHTML = filtered.map(product => `
     <tr>
       <td>${escapeHtml(product.name || "—")}</td>
       <td>${escapeHtml(product.category?.name || "—")}</td>
@@ -323,13 +394,14 @@ function renderProducts() {
 
 function renderCategories() {
   const body = document.getElementById("categoriesTableBody");
+  if (!body) return;
 
   if (!categories.length) {
     body.innerHTML = `<tr><td colspan="3"><div class="empty">No categories found</div></td></tr>`;
     return;
   }
 
-  body.innerHTML = categories.map((category) => `
+  body.innerHTML = categories.map(category => `
     <tr>
       <td>${escapeHtml(category.name)}</td>
       <td>${category.isActive ? "Active" : "Inactive"}</td>
@@ -345,13 +417,14 @@ function renderCategories() {
 
 function renderSubcategories() {
   const body = document.getElementById("subcategoriesTableBody");
+  if (!body) return;
 
   if (!subcategories.length) {
     body.innerHTML = `<tr><td colspan="4"><div class="empty">No subcategories found</div></td></tr>`;
     return;
   }
 
-  body.innerHTML = subcategories.map((subcategory) => `
+  body.innerHTML = subcategories.map(subcategory => `
     <tr>
       <td>${escapeHtml(subcategory.name)}</td>
       <td>${escapeHtml(subcategory.category?.name || "—")}</td>
@@ -368,13 +441,14 @@ function renderSubcategories() {
 
 function renderCoupons() {
   const body = document.getElementById("couponsTableBody");
+  if (!body) return;
 
   if (!coupons.length) {
     body.innerHTML = `<tr><td colspan="6"><div class="empty">No coupons found</div></td></tr>`;
     return;
   }
 
-  body.innerHTML = coupons.map((coupon) => `
+  body.innerHTML = coupons.map(coupon => `
     <tr>
       <td>${escapeHtml(coupon.code)}</td>
       <td>${escapeHtml(coupon.discountType)}</td>
@@ -418,7 +492,7 @@ async function saveCategory() {
 }
 
 function editCategory(id) {
-  const category = categories.find((c) => c._id === id);
+  const category = categories.find(c => c._id === id);
   if (!category) return;
 
   document.getElementById("categoryId").value = category._id;
@@ -476,7 +550,7 @@ async function saveSubcategory() {
 }
 
 function editSubcategory(id) {
-  const subcategory = subcategories.find((s) => s._id === id);
+  const subcategory = subcategories.find(s => s._id === id);
   if (!subcategory) return;
 
   const categoryId = typeof subcategory.category === "object"
@@ -522,7 +596,7 @@ async function saveProduct() {
       description: document.getElementById("productDescription").value.trim(),
       options: document.getElementById("productOptions").value
         .split(",")
-        .map((opt) => opt.trim())
+        .map(opt => opt.trim())
         .filter(Boolean),
       isActive: document.getElementById("productIsActive").value === "true"
     };
@@ -547,7 +621,7 @@ async function saveProduct() {
 }
 
 function editProduct(id) {
-  const product = products.find((p) => p._id === id);
+  const product = products.find(p => p._id === id);
   if (!product) return;
 
   document.getElementById("productId").value = product._id;
@@ -625,7 +699,7 @@ async function saveCoupon() {
 }
 
 function editCoupon(id) {
-  const coupon = coupons.find((c) => c._id === id);
+  const coupon = coupons.find(c => c._id === id);
   if (!coupon) return;
 
   document.getElementById("couponId").value = coupon._id;
@@ -695,9 +769,7 @@ async function shareSummary() {
         title: "Aridii Tech Summary",
         text
       });
-    } catch (error) {
-      console.log("Share cancelled or failed");
-    }
+    } catch (error) {}
   } else {
     try {
       await navigator.clipboard.writeText(text);
@@ -724,9 +796,9 @@ function exportOrdersCSV() {
     ["Customer", "Phone", "Payment", "Total", "Status", "Date", "Items"]
   ];
 
-  orders.forEach((order) => {
+  orders.forEach(order => {
     const itemsText = safeArray(order.items)
-      .map((item) => `${item.name || "Item"} (${item.quantity || 1} x ${item.price || 0})`)
+      .map(item => `${item.name || "Item"} (${item.quantity || 1} x ${item.price || 0})`)
       .join(" | ");
 
     rows.push([
@@ -741,7 +813,7 @@ function exportOrdersCSV() {
   });
 
   const csv = rows
-    .map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))
+    .map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(","))
     .join("\n");
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -751,6 +823,40 @@ function exportOrdersCSV() {
   link.download = "aridii-orders.csv";
   link.click();
   URL.revokeObjectURL(url);
+}
+
+function setupDashboardUI() {
+  const sidebar = document.getElementById("sidebar");
+  const menuToggle = document.getElementById("menuToggle");
+  const sidebarOverlay = document.getElementById("sidebarOverlay");
+  const productCategory = document.getElementById("productCategory");
+
+  menuToggle?.addEventListener("click", () => {
+    sidebar?.classList.toggle("open");
+    sidebarOverlay?.classList.toggle("show");
+  });
+
+  sidebarOverlay?.addEventListener("click", () => {
+    sidebar?.classList.remove("open");
+    sidebarOverlay?.classList.remove("show");
+  });
+
+  document.querySelectorAll(".menu-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".menu-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+
+      btn.classList.add("active");
+      document.getElementById(btn.dataset.target).classList.add("active");
+
+      sidebar?.classList.remove("open");
+      sidebarOverlay?.classList.remove("show");
+    });
+  });
+
+  productCategory?.addEventListener("change", (e) => {
+    populateSubcategorySelects(e.target.value);
+  });
 }
 
 async function refreshAll() {
@@ -777,4 +883,16 @@ async function refreshAll() {
   }
 }
 
-refreshAll();
+document.addEventListener("DOMContentLoaded", () => {
+  const loginForm = document.getElementById("loginForm");
+  const dashboardRoot = document.getElementById("dashboardRoot");
+
+  if (loginForm) {
+    loginForm.addEventListener("submit", loginAdmin);
+  }
+
+  if (dashboardRoot) {
+    setupDashboardUI();
+    refreshAll();
+  }
+});
