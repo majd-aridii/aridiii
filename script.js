@@ -706,6 +706,7 @@ async function checkout() {
     console.log("Checkout clicked");
     console.log("Cart:", cart);
     console.log("Selected payment:", document.querySelector('input[name="payment"]:checked'));
+
     if (cart.length === 0) return;
 
     const selectedPayment = document.querySelector('input[name="payment"]:checked');
@@ -715,10 +716,17 @@ async function checkout() {
     }
 
     const paymentMethod = selectedPayment.value;
+
     const paymentMethods = {
         wishmoney: "wish",
         omt: "omt",
         cash: "cash"
+    };
+
+    const paymentLabels = {
+        wishmoney: "Wish Money",
+        omt: "OMT",
+        cash: "Cash"
     };
 
     const backendPaymentMethod = paymentMethods[paymentMethod] || "cash";
@@ -737,21 +745,27 @@ async function checkout() {
         };
     });
 
-    const customerName = prompt("Enter your name:");
-    if (!customerName || !customerName.trim()) {
+    const customerNameInput = document.getElementById("customerName");
+    const customerPhoneInput = document.getElementById("customerPhone");
+    const customerNotesInput = document.getElementById("customerNotes");
+
+    const customerName = customerNameInput?.value.trim();
+    if (!customerName) {
         showCartNotification("Customer name is required");
         return;
     }
 
-    const phone = prompt("Enter your phone number:");
-    if (!phone || !phone.trim()) {
+    const phone = customerPhoneInput?.value.trim();
+    if (!phone) {
         showCartNotification("Phone number is required");
         return;
     }
 
+    const notes = customerNotesInput?.value.trim() || "";
+
     const orderData = {
-        customerName: customerName.trim(),
-        phone: phone.trim(),
+        customerName,
+        phone,
         paymentMethod: backendPaymentMethod,
         items: orderItems,
         totalAmount: total
@@ -769,28 +783,36 @@ async function checkout() {
 
         message += `\nTotal: $${total.toFixed(2)}`;
         if (appliedCoupon) message += `\nCoupon: ${appliedCoupon}`;
-        message += `\nPayment Method: ${paymentMethod}`;
-        message += `\nCustomer Name: ${customerName.trim()}`;
-        message += `\nPhone: ${phone.trim()}`;
+        message += `\nPayment Method: ${paymentLabels[paymentMethod] || paymentMethod}`;
+        message += `\nCustomer Name: ${customerName}`;
+        message += `\nPhone: ${phone}`;
+        if (notes) message += `\nNotes: ${notes}`;
         message += `\n\nPlease confirm my order.`;
 
         const whatsappUrl = `https://wa.me/96171450495?text=${encodeURIComponent(message)}`;
         window.open(whatsappUrl, "_blank");
 
-        showCartNotification("Order saved successfully!");
+        showCartNotification("Order saved successfully! 🎉");
 
         cart = [];
         appliedCoupon = null;
         updateCartDisplay();
+
+        if (customerNameInput) customerNameInput.value = "";
+        if (customerPhoneInput) customerPhoneInput.value = "";
+        if (customerNotesInput) customerNotesInput.value = "";
+
         closeCart();
+
     } catch (error) {
+        console.error(error);
         showCartNotification("Failed to save order to server");
     }
 }
 
 async function sendOrderToBackend(orderData) {
     try {
-        const response = await fetch("http://localhost:5000/api/orders", {
+        const response = await fetch("https://aridiitech-backend.onrender.com/api/orders", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
