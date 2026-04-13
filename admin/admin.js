@@ -46,12 +46,21 @@ async function loginAdmin(event) {
     const res = await fetch(`${API_BASE}/admin/login`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Accept": "application/json"
       },
       body: JSON.stringify({ username, password })
     });
 
-    const data = await res.json();
+    const contentType = res.headers.get("content-type") || "";
+    const rawText = await res.text();
+
+    if (!contentType.includes("application/json")) {
+      console.error("Expected JSON but got:", rawText);
+      throw new Error("Backend did not return JSON. Check backend login route.");
+    }
+
+    const data = JSON.parse(rawText);
 
     if (!res.ok || !data.success) {
       throw new Error(data.message || "Login failed");
@@ -67,7 +76,6 @@ async function loginAdmin(event) {
     if (message) message.textContent = error.message || "Something went wrong";
   }
 }
-
 function authHeaders() {
   return {
     "Content-Type": "application/json",
