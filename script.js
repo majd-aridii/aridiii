@@ -1124,22 +1124,29 @@ if (couponBtn) {
 }
 
 function renderBackendProducts(products) {
-  console.log("renderBackendProducts called");
-  console.log("Products received:", products);
-
-  const section = document.getElementById("phones-items");
-  if (!section) {
-    console.error("phones-items section not found");
-    return;
-  }
-
-  const grid = section.querySelector(".items-grid");
-  if (!grid) {
-    console.error("items-grid not found inside phones-items");
-    return;
-  }
-
   products.forEach((product) => {
+    let targetSection = null;
+
+    const categoryName = product.category?.name?.toLowerCase();
+
+    if (categoryName === "phones & accessories") {
+      targetSection = document.querySelector("#phones-items .items-grid");
+    }
+
+    if (categoryName === "services") {
+      targetSection = document.querySelector("#services-items .items-grid");
+    }
+
+    if (categoryName === "games") {
+      targetSection = document.querySelector("#games-items .items-grid");
+    }
+
+    if (categoryName === "internet") {
+      targetSection = document.querySelector("#internet-items .items-grid");
+    }
+
+    if (!targetSection) return;
+
     const card = document.createElement("div");
     card.className = "item-card";
     card.setAttribute("data-keywords", `${product.name}, ${product.description || ""}`);
@@ -1156,12 +1163,9 @@ function renderBackendProducts(products) {
       <button class="add-to-cart">Add to Cart</button>
     `;
 
-    grid.appendChild(card);
+    targetSection.appendChild(card);
   });
-
-  console.log("Products appended successfully");
 }
-
 // ========== INIT ==========
 function initializeApp() {
   setupEventListeners();
