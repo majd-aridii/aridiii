@@ -362,7 +362,7 @@ function renderProducts() {
     <tr>
       <td>
         ${product.image
-            ? `<img src="${escapeHtml(getImageUrl(product.image))}" alt="${escapeHtml(product.name || "Product")}" class="table-thumb">`
+        ? `<img src="${escapeHtml(getImageUrl(product.image))}" alt="${escapeHtml(product.name || "Product")}" class="table-image">`
             : `<span class="muted">No image</span>`
         }
       </td>
@@ -393,7 +393,7 @@ function renderCategories() {
     <tr>
       <td>
         ${category.image
-            ? `<img src="${escapeHtml(getImageUrl(category.image))}" alt="${escapeHtml(category.name)}" class="table-thumb">`
+        ? `<img src="${escapeHtml(getImageUrl(category.image))}" alt="${escapeHtml(category.name)}" class="table-image">`
             : `<span class="muted">No image</span>`
         }
       </td>
@@ -421,7 +421,7 @@ function renderSubcategories() {
     <tr>
       <td>
         ${subcategory.image
-            ? `<img src="${escapeHtml(getImageUrl(subcategory.image))}" alt="${escapeHtml(subcategory.name)}" class="table-thumb">`
+        ? `<img src="${escapeHtml(getImageUrl(subcategory.image))}" alt="${escapeHtml(subcategory.name)}" class="table-image">`
             : `<span class="muted">No image</span>`
         }
       </td>
