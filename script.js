@@ -4,6 +4,7 @@ let navStack = [];
 let slideIndex = 0;
 let activeCard = null;
 const BACKEND_URL = "https://aridiitech-backend.onrender.com";
+console.log("NEW SCRIPT LOADED");
 
 // ===============================
 // RAMADAN COUPON SYSTEM
@@ -1104,35 +1105,6 @@ if (couponBtn) {
   });
 }
 
-async function testProductsAPI() {
-  try {
-    const response = await fetch(`${BACKEND_URL}/api/products`);
-    const data = await response.json();
-
-    console.log("Products API response:", data);
-
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "Failed to load products");
-    }
-
-    return data.products || [];
-  } catch (error) {
-    console.error("Error loading products:", error);
-    return [];
-  }
-}
-
-// ========== INIT ==========
-function initializeApp() {
-  setupEventListeners();
-  showMainCategories();
-  updateCartDisplay();
-  hideAllProviderItems();
-  startSlider();
-
-  setTimeout(openPrizeModal, 800);
-
-  syncHistory(true);
 
   async function testProductsAPI() {
   try {
@@ -1189,6 +1161,24 @@ function renderBackendProducts(products) {
 
   console.log("Products appended successfully");
 }
+
+// ========== INIT ==========
+function initializeApp() {
+  setupEventListeners();
+  showMainCategories();
+  updateCartDisplay();
+  hideAllProviderItems();
+  startSlider();
+  console.log("INITIALIZE APP RUNNING");
+
+  setTimeout(openPrizeModal, 800);
+
+  syncHistory(true);
+
+  testProductsAPI();
+}
+
+
 
 // ========== EXPORTS ==========
 window.showItems = showItems;
