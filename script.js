@@ -1127,25 +1127,11 @@ function renderBackendProducts(products) {
   document.querySelectorAll(".backend-product").forEach(el => el.remove());
 
   products.forEach((product) => {
-    let targetSection = null;
-
     const categoryName = product.category?.name?.toLowerCase();
 
-    if (categoryName === "phones & accessories") {
-      targetSection = document.querySelector("#phones-items .items-grid");
-    }
-
-    if (categoryName === "services") {
-      targetSection = document.querySelector("#services-items .items-grid");
-    }
-
-    if (categoryName === "games") {
-      targetSection = document.querySelector("#games-items .items-grid");
-    }
-
-    if (categoryName === "internet") {
-      targetSection = document.querySelector("#internet-items .items-grid");
-    }
+    const targetSection = document.querySelector(
+      `[data-category-name="${categoryName}"] .items-grid`
+    );
 
     if (!targetSection) return;
 
