@@ -1124,6 +1124,8 @@ if (couponBtn) {
 }
 
 function renderBackendProducts(products) {
+  document.querySelectorAll(".backend-product").forEach(el => el.remove());
+
   products.forEach((product) => {
     let targetSection = null;
 
@@ -1148,7 +1150,7 @@ function renderBackendProducts(products) {
     if (!targetSection) return;
 
     const card = document.createElement("div");
-    card.className = "item-card";
+    card.className = "item-card backend-product";
     card.setAttribute("data-keywords", `${product.name}, ${product.description || ""}`);
 
     card.innerHTML = `
