@@ -352,30 +352,29 @@ function navigateToSearchCategory(button) {
   const originalElement = card?.originalElement;
   if (!originalElement) return;
 
+  const searchResults = document.querySelector(".search-results");
+  if (searchResults) searchResults.remove();
+  if (searchInput) searchInput.value = "";
+
   if (originalElement.classList.contains("category-card")) {
     const category = originalElement.getAttribute("data-category");
+    const directItemsId = originalElement.getAttribute("data-direct-items-id");
 
-    // ✅ FIX: phones now opens phones-items
-    if (category === "phones") {
-      navStack.push({ type: "items", id: "phones-items" });
-      showItems("phones-items");
-    } else if (category === "internet") {
-      navStack.push({ type: "items", id: "internet-items" });
-      showItems("internet-items");
+    if (directItemsId) {
+      navStack.push({ type: "items", id: directItemsId });
+      showItems(directItemsId);
     } else {
       navStack.push({ type: "sub", id: category });
       showSubcategory(category);
     }
   } else if (originalElement.classList.contains("sub-card")) {
-    const onclickAttr = originalElement.getAttribute("onclick");
-    const match = onclickAttr?.match(/showItems\('([^']+)'\)/);
-    if (match?.[1]) {
-      navStack.push({ type: "items", id: match[1] });
-      showItems(match[1]);
-    }
+    const itemsId = originalElement.getAttribute("data-items-id");
+    if (!itemsId) return;
+
+    navStack.push({ type: "items", id: itemsId });
+    showItems(itemsId);
   }
 
-  clearSearch();
   syncHistory(false);
 }
 
@@ -417,6 +416,7 @@ function showItems(itemsId) {
   if (mainCategories) mainCategories.style.display = "none";
 
   const itemsDiv = document.getElementById(itemsId);
+  console.log("Opening items:", itemsId, itemsDiv);
   if (itemsDiv) {
     itemsDiv.style.display = "block";
     itemsDiv.classList.add("active");
@@ -1143,8 +1143,9 @@ function renderDynamicStore() {
       const slug = slugify(category.name);
 
       const card = document.createElement("div");
-      card.className = "category-card";
-      card.setAttribute("data-category", slug);
+	  card.className = "category-card";
+	  card.setAttribute("data-category", slug);
+   	  card.setAttribute("data-keywords", category.name.toLowerCase());
 
       const categoryImage =
         category.image && category.image.trim() !== ""
@@ -1188,7 +1189,7 @@ function renderDynamicStore() {
               : "https://via.placeholder.com/300x300?text=Aridii+Tech";
 
           subHtml += `
-            <div class="sub-card" data-items-id="${itemsId}">
+            <div class="sub-card" data-items-id="${itemsId}" data-keywords="${subcat.name.toLowerCase()}">
               <img src="${subImage}" alt="${subcat.name}">
               <p>${subcat.name}</p>
             </div>
@@ -1216,7 +1217,7 @@ function renderDynamicStore() {
                   : "https://via.placeholder.com/300x300?text=Aridii+Tech";
 
               itemHtml += `
-                <div class="item-card">
+                <div class="item-card" data-keywords="${(product.name || "").toLowerCase()} ${(product.description || "").toLowerCase()}">
                   <img src="${productImage}" alt="${product.name}">
                   <p class="item-name">${product.name}</p>
                   <p class="item-price">$${Number(product.price).toFixed(2)}</p>
@@ -1260,7 +1261,7 @@ function renderDynamicStore() {
                 : "https://via.placeholder.com/300x300?text=Aridii+Tech";
 
             itemHtml += `
-              <div class="item-card">
+              <div class="item-card" data-keywords="${(product.name || "").toLowerCase()} ${(product.description || "").toLowerCase()}">
                 <img src="${productImage}" alt="${product.name}">
                 <p class="item-name">${product.name}</p>
                 <p class="item-price">$${Number(product.price).toFixed(2)}</p>
@@ -1290,6 +1291,12 @@ async function initializeApp() {
   await loadStoreData();
 
   setupEventListeners();
+
+  // refresh dynamic elements after rendering
+  categoryCards = document.querySelectorAll(".category-card");
+  subcategories = document.querySelectorAll(".subcategories");
+  items = document.querySelectorAll(".items");
+
   showMainCategories();
   updateCartDisplay();
   hideAllProviderItems();
@@ -1299,7 +1306,6 @@ async function initializeApp() {
 
   syncHistory(true);
 }
-
 
 // ========== EXPORTS ==========
 window.showItems = showItems;
