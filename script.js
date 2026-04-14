@@ -5,6 +5,18 @@ let slideIndex = 0;
 let activeCard = null;
 const BACKEND_URL = "https://aridiitech-backend.onrender.com";
 console.log("NEW SCRIPT LOADED");
+let backendCategories = [];
+let backendSubcategories = [];
+let backendProducts = [];
+
+function slugify(text) {
+  return String(text || "")
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 // ===============================
 // RAMADAN COUPON SYSTEM
@@ -950,6 +962,7 @@ function closeCart() {
   document.body.style.overflow = "auto";
 }
 
+
 // ========== EVENTS ==========
 function setupEventListeners() {
   categoryCards = document.querySelectorAll(".category-card");
@@ -979,17 +992,8 @@ function setupEventListeners() {
     card.addEventListener("click", () => {
       const category = card.getAttribute("data-category");
 
-      // ✅ FIX: phones now opens phones-items
-      if (category === "phones") {
-        navStack.push({ type: "items", id: "phones-items" });
-        showItems("phones-items");
-      } else if (category === "internet") {
-        navStack.push({ type: "items", id: "internet-items" });
-        showItems("internet-items");
-      } else {
-        navStack.push({ type: "sub", id: category });
-        showSubcategory(category);
-      }
+      navStack.push({ type: "sub", id: category });
+      showSubcategory(category);
 
       syncHistory(false);
     });
@@ -1000,23 +1004,12 @@ function setupEventListeners() {
     const subCard = e.target.closest(".sub-card");
     if (!subCard) return;
 
-    const onclickAttr = subCard.getAttribute("onclick");
-    if (!onclickAttr) return;
+    const itemsId = subCard.getAttribute("data-items-id");
+    if (!itemsId) return;
 
-    const providerMatch = onclickAttr.match(/showProviderItems\('([^']+)'\)/);
-    if (providerMatch?.[1]) {
-      navStack.push({ type: "provider", id: providerMatch[1] });
-      showProviderItems(providerMatch[1]);
-      syncHistory(false);
-      return;
-    }
-
-    const itemsMatch = onclickAttr.match(/showItems\('([^']+)'\)/);
-    if (itemsMatch?.[1]) {
-      navStack.push({ type: "items", id: itemsMatch[1] });
-      showItems(itemsMatch[1]);
-      syncHistory(false);
-    }
+    navStack.push({ type: "items", id: itemsId });
+    showItems(itemsId);
+    syncHistory(false);
   });
 
   // Back buttons (delegation)
@@ -1036,29 +1029,26 @@ function setupEventListeners() {
     });
   }
 
-if (checkoutBtn) checkoutBtn.addEventListener("click", checkout);
+  if (checkoutBtn) checkoutBtn.addEventListener("click", checkout);
 
-// ===============================
-// Coupon apply button
-// ===============================
-const couponBtn = document.getElementById("applyCouponBtn");
-if (couponBtn) {
-  couponBtn.addEventListener("click", function () {
-    const input = document.getElementById("couponInput");
-    if (!input) return;
+  // Coupon apply button
+  const couponBtn = document.getElementById("applyCouponBtn");
+  if (couponBtn) {
+    couponBtn.addEventListener("click", function () {
+      const input = document.getElementById("couponInput");
+      if (!input) return;
 
-    if (input.value.trim() === RAMADAN_COUPON) {
-      appliedCoupon = RAMADAN_COUPON;
-      showCartNotification("Ramadan discount applied 🎉");
-    } else {
-      appliedCoupon = null;
-      showCartNotification("Invalid coupon code");
-    }
+      if (input.value.trim() === RAMADAN_COUPON) {
+        appliedCoupon = RAMADAN_COUPON;
+        showCartNotification("Ramadan discount applied 🎉");
+      } else {
+        appliedCoupon = null;
+        showCartNotification("Invalid coupon code");
+      }
 
-    updateCartDisplay();
-  });
-}
-
+      updateCartDisplay();
+    });
+  }
 
   // Item + quantity + cart controls
   document.addEventListener("click", (e) => {
@@ -1090,7 +1080,9 @@ if (couponBtn) {
   }
 
   // Payment cards
-  paymentCards?.forEach((card) => card.addEventListener("click", () => handlePaymentCardClick(card)));
+  paymentCards?.forEach((card) =>
+    card.addEventListener("click", () => handlePaymentCardClick(card))
+  );
 
   // Prize modal outside click
   window.addEventListener("click", (event) => {
@@ -1106,70 +1098,123 @@ if (couponBtn) {
 }
 
 
-  async function testProductsAPI() {
+async function loadStoreData() {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/products`);
-    const data = await response.json();
+    const [categoriesRes, subcategoriesRes, productsRes] = await Promise.all([
+      fetch(`${BACKEND_URL}/api/categories`),
+      fetch(`${BACKEND_URL}/api/subcategories`),
+      fetch(`${BACKEND_URL}/api/products`)
+    ]);
 
-    console.log("Products API response:", data);
+    const categoriesData = await categoriesRes.json();
+    const subcategoriesData = await subcategoriesRes.json();
+    const productsData = await productsRes.json();
 
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "Failed to load products");
-    }
+    backendCategories = categoriesData.categories || [];
+    backendSubcategories = subcategoriesData.subcategories || [];
+    backendProducts = productsData.products || [];
 
-    renderBackendProducts(data.products || []);
+    renderDynamicStore();
   } catch (error) {
-    console.error("Error loading products:", error);
+    console.error("Error loading store:", error);
   }
 }
 
-function renderBackendProducts(products) {
-  document.querySelectorAll(".backend-product").forEach(el => el.remove());
+function renderDynamicStore() {
+  const main = document.getElementById("dynamicMainCategories");
+  const sub = document.getElementById("dynamicSubcategoriesContainer");
+  const items = document.getElementById("dynamicItemsContainer");
 
-  products.forEach((product) => {
-    const categoryName = product.category?.name?.toLowerCase();
+  if (!main || !sub || !items) return;
 
-    const targetSection = document.querySelector(
-      `[data-category-name="${categoryName}"] .items-grid`
-    );
+  main.innerHTML = "";
+  sub.innerHTML = "";
+  items.innerHTML = "";
 
-    if (!targetSection) return;
+  backendCategories.forEach((category) => {
+    const slug = slugify(category.name);
 
     const card = document.createElement("div");
-    card.className = "item-card backend-product";
-    card.setAttribute("data-keywords", `${product.name}, ${product.description || ""}`);
+    card.className = "category-card";
+    card.setAttribute("data-category", slug);
 
     card.innerHTML = `
-      <img src="${product.image || "https://via.placeholder.com/300x300?text=Aridii+Tech"}" alt="${product.name}" />
-      <p class="item-name">${product.name}</p>
-      <p class="item-price">$${Number(product.price).toFixed(2)}</p>
-      <div class="quantity-container">
-        <button class="qty-btn minus">-</button>
-        <input type="number" class="qty-input" value="1" min="1">
-        <button class="qty-btn plus">+</button>
-      </div>
-      <button class="add-to-cart">Add to Cart</button>
+      <img src="${category.image || "https://via.placeholder.com/300x300?text=Aridii+Tech"}" alt="${category.name}">
+      <p>${category.name}</p>
     `;
 
-    targetSection.appendChild(card);
+    main.appendChild(card);
+
+    const relatedSubs = backendSubcategories.filter(
+      s => String(s.category?._id || s.category) === String(category._id)
+    );
+
+    if (relatedSubs.length > 0) {
+      const subWrap = document.createElement("div");
+      subWrap.className = "subcategories";
+      subWrap.id = slug;
+
+      let subHtml = `<h3>${category.name}</h3><div class="sub-grid">`;
+
+      relatedSubs.forEach((subcat) => {
+        const subSlug = slugify(subcat.name);
+        const itemsId = `${slug}-${subSlug}-items`;
+
+        subHtml += `
+          <div class="sub-card" data-items-id="${itemsId}">
+            <img src="${subcat.image || "https://via.placeholder.com/300x300?text=Aridii+Tech"}" alt="${subcat.name}">
+            <p>${subcat.name}</p>
+          </div>
+        `;
+
+        const relatedProducts = backendProducts.filter(
+          p => String(p.subcategory?._id || p.subcategory) === String(subcat._id)
+        );
+
+        const itemSection = document.createElement("div");
+        itemSection.className = "items";
+        itemSection.id = itemsId;
+
+        let itemHtml = `<h4>${subcat.name}</h4><div class="items-grid">`;
+
+        relatedProducts.forEach((product) => {
+          itemHtml += `
+            <div class="item-card">
+              <img src="${product.image || "https://via.placeholder.com/300x300?text=Aridii+Tech"}" alt="${product.name}">
+              <p class="item-name">${product.name}</p>
+              <p class="item-price">$${product.price}</p>
+              <button class="add-to-cart">Add to Cart</button>
+            </div>
+          `;
+        });
+
+        itemHtml += `</div><button class="back-btn">← Back</button>`;
+        itemSection.innerHTML = itemHtml;
+        items.appendChild(itemSection);
+      });
+
+      subHtml += `</div><button class="back-btn">← Back</button>`;
+      subWrap.innerHTML = subHtml;
+      sub.appendChild(subWrap);
+    }
   });
 }
+
+
 // ========== INIT ==========
-function initializeApp() {
+async function initializeApp() {
+  await loadStoreData();
+
   setupEventListeners();
   showMainCategories();
   updateCartDisplay();
   hideAllProviderItems();
   startSlider();
-  console.log("INITIALIZE APP RUNNING");
 
   setTimeout(openPrizeModal, 800);
 
   syncHistory(true);
-
-  testProductsAPI();
 }
-
 
 
 // ========== EXPORTS ==========
