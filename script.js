@@ -987,17 +987,23 @@ function setupEventListeners() {
   slides = document.querySelector(".slides");
   prizeModal = document.getElementById("prizeModal");
 
-  // Category navigation
-  categoryCards?.forEach((card) => {
-    card.addEventListener("click", () => {
-      const category = card.getAttribute("data-category");
+// Category navigation
+categoryCards?.forEach((card) => {
+  card.addEventListener("click", () => {
+    const category = card.getAttribute("data-category");
+    const directItemsId = card.getAttribute("data-direct-items-id");
 
+    if (directItemsId) {
+      navStack.push({ type: "items", id: directItemsId });
+      showItems(directItemsId);
+    } else {
       navStack.push({ type: "sub", id: category });
       showSubcategory(category);
+    }
 
-      syncHistory(false);
-    });
+    syncHistory(false);
   });
+});
 
   // Sub-card navigation (delegation)
   document.addEventListener("click", (e) => {
@@ -1123,81 +1129,159 @@ async function loadStoreData() {
 function renderDynamicStore() {
   const main = document.getElementById("dynamicMainCategories");
   const sub = document.getElementById("dynamicSubcategoriesContainer");
-  const items = document.getElementById("dynamicItemsContainer");
+  const itemsContainer = document.getElementById("dynamicItemsContainer");
 
-  if (!main || !sub || !items) return;
+  if (!main || !sub || !itemsContainer) return;
 
   main.innerHTML = "";
   sub.innerHTML = "";
-  items.innerHTML = "";
+  itemsContainer.innerHTML = "";
 
-  backendCategories.forEach((category) => {
-    const slug = slugify(category.name);
+  backendCategories
+    .filter(category => category.isActive !== false)
+    .forEach((category) => {
+      const slug = slugify(category.name);
 
-    const card = document.createElement("div");
-    card.className = "category-card";
-    card.setAttribute("data-category", slug);
+      const card = document.createElement("div");
+      card.className = "category-card";
+      card.setAttribute("data-category", slug);
 
-    card.innerHTML = `
-      <img src="${category.image || "https://via.placeholder.com/300x300?text=Aridii+Tech"}" alt="${category.name}">
-      <p>${category.name}</p>
-    `;
+      const categoryImage =
+        category.image && category.image.trim() !== ""
+          ? category.image
+          : "https://via.placeholder.com/300x300?text=Aridii+Tech";
 
-    main.appendChild(card);
+      card.innerHTML = `
+        <img src="${categoryImage}" alt="${category.name}">
+        <p>${category.name}</p>
+      `;
 
-    const relatedSubs = backendSubcategories.filter(
-      s => String(s.category?._id || s.category) === String(category._id)
-    );
+      main.appendChild(card);
 
-    if (relatedSubs.length > 0) {
-      const subWrap = document.createElement("div");
-      subWrap.className = "subcategories";
-      subWrap.id = slug;
+      const relatedSubs = backendSubcategories.filter(
+        (s) =>
+          String(s.category?._id || s.category) === String(category._id) &&
+          s.isActive !== false
+      );
 
-      let subHtml = `<h3>${category.name}</h3><div class="sub-grid">`;
+      const directProducts = backendProducts.filter(
+        (p) =>
+          String(p.category?._id || p.category) === String(category._id) &&
+          (!p.subcategory || p.subcategory === null) &&
+          p.isActive !== false
+      );
 
-      relatedSubs.forEach((subcat) => {
-        const subSlug = slugify(subcat.name);
-        const itemsId = `${slug}-${subSlug}-items`;
+      if (relatedSubs.length > 0) {
+        const subWrap = document.createElement("div");
+        subWrap.className = "subcategories";
+        subWrap.id = slug;
 
-        subHtml += `
-          <div class="sub-card" data-items-id="${itemsId}">
-            <img src="${subcat.image || "https://via.placeholder.com/300x300?text=Aridii+Tech"}" alt="${subcat.name}">
-            <p>${subcat.name}</p>
-          </div>
-        `;
+        let subHtml = `<h3>${category.name}</h3><div class="sub-grid">`;
 
-        const relatedProducts = backendProducts.filter(
-          p => String(p.subcategory?._id || p.subcategory) === String(subcat._id)
-        );
+        relatedSubs.forEach((subcat) => {
+          const subSlug = slugify(subcat.name);
+          const itemsId = `${slug}-${subSlug}-items`;
+
+          const subImage =
+            subcat.image && subcat.image.trim() !== ""
+              ? subcat.image
+              : "https://via.placeholder.com/300x300?text=Aridii+Tech";
+
+          subHtml += `
+            <div class="sub-card" data-items-id="${itemsId}">
+              <img src="${subImage}" alt="${subcat.name}">
+              <p>${subcat.name}</p>
+            </div>
+          `;
+
+          const relatedProducts = backendProducts.filter(
+            (p) =>
+              String(p.subcategory?._id || p.subcategory) === String(subcat._id) &&
+              p.isActive !== false
+          );
+
+          const itemSection = document.createElement("div");
+          itemSection.className = "items";
+          itemSection.id = itemsId;
+
+          let itemHtml = `<h4>${subcat.name}</h4><div class="items-grid">`;
+
+          if (relatedProducts.length === 0) {
+            itemHtml += `<p style="padding:20px;">No products found in this section.</p>`;
+          } else {
+            relatedProducts.forEach((product) => {
+              const productImage =
+                product.image && product.image.trim() !== ""
+                  ? product.image
+                  : "https://via.placeholder.com/300x300?text=Aridii+Tech";
+
+              itemHtml += `
+                <div class="item-card">
+                  <img src="${productImage}" alt="${product.name}">
+                  <p class="item-name">${product.name}</p>
+                  <p class="item-price">$${Number(product.price).toFixed(2)}</p>
+                  <div class="quantity-container">
+                    <button class="qty-btn minus">-</button>
+                    <input type="number" class="qty-input" value="1" min="1">
+                    <button class="qty-btn plus">+</button>
+                  </div>
+                  <button class="add-to-cart">Add to Cart</button>
+                </div>
+              `;
+            });
+          }
+
+          itemHtml += `</div><button class="back-btn">← Back</button>`;
+          itemSection.innerHTML = itemHtml;
+          itemsContainer.appendChild(itemSection);
+        });
+
+        subHtml += `</div><button class="back-btn">← Back</button>`;
+        subWrap.innerHTML = subHtml;
+        sub.appendChild(subWrap);
+      }
+
+      if (relatedSubs.length === 0) {
+        const directItemsId = `${slug}-items`;
 
         const itemSection = document.createElement("div");
         itemSection.className = "items";
-        itemSection.id = itemsId;
+        itemSection.id = directItemsId;
 
-        let itemHtml = `<h4>${subcat.name}</h4><div class="items-grid">`;
+        let itemHtml = `<h4>${category.name}</h4><div class="items-grid">`;
 
-        relatedProducts.forEach((product) => {
-          itemHtml += `
-            <div class="item-card">
-              <img src="${product.image || "https://via.placeholder.com/300x300?text=Aridii+Tech"}" alt="${product.name}">
-              <p class="item-name">${product.name}</p>
-              <p class="item-price">$${product.price}</p>
-              <button class="add-to-cart">Add to Cart</button>
-            </div>
-          `;
-        });
+        if (directProducts.length === 0) {
+          itemHtml += `<p style="padding:20px;">No products found in this section.</p>`;
+        } else {
+          directProducts.forEach((product) => {
+            const productImage =
+              product.image && product.image.trim() !== ""
+                ? product.image
+                : "https://via.placeholder.com/300x300?text=Aridii+Tech";
+
+            itemHtml += `
+              <div class="item-card">
+                <img src="${productImage}" alt="${product.name}">
+                <p class="item-name">${product.name}</p>
+                <p class="item-price">$${Number(product.price).toFixed(2)}</p>
+                <div class="quantity-container">
+                  <button class="qty-btn minus">-</button>
+                  <input type="number" class="qty-input" value="1" min="1">
+                  <button class="qty-btn plus">+</button>
+                </div>
+                <button class="add-to-cart">Add to Cart</button>
+              </div>
+            `;
+          });
+        }
 
         itemHtml += `</div><button class="back-btn">← Back</button>`;
         itemSection.innerHTML = itemHtml;
-        items.appendChild(itemSection);
-      });
+        itemsContainer.appendChild(itemSection);
 
-      subHtml += `</div><button class="back-btn">← Back</button>`;
-      subWrap.innerHTML = subHtml;
-      sub.appendChild(subWrap);
-    }
-  });
+        card.setAttribute("data-direct-items-id", directItemsId);
+      }
+    });
 }
 
 
