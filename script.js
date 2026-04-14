@@ -1134,7 +1134,49 @@ function initializeApp() {
 
   syncHistory(true);
 
-  testProductsAPI();
+  async function testProductsAPI() {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/products`);
+    const data = await response.json();
+
+    console.log("Products API response:", data);
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Failed to load products");
+    }
+
+    renderBackendProducts(data.products || []);
+  } catch (error) {
+    console.error("Error loading products:", error);
+  }
+}
+
+function renderBackendProducts(products) {
+  const container = document.getElementById("phones-items");
+
+  if (!container) return;
+
+  products.forEach((product) => {
+    const card = document.createElement("div");
+    card.className = "item-card";
+
+    card.innerHTML = `
+      <div class="item-image">
+        <img src="${product.image || ""}" alt="${product.name}">
+      </div>
+      <div class="item-name">${product.name}</div>
+      <div class="item-price">$${product.price}</div>
+      <div class="quantity-controls">
+        <button class="qty-btn minus">-</button>
+        <input type="number" class="qty-input" value="1" min="1">
+        <button class="qty-btn plus">+</button>
+      </div>
+      <button class="add-to-cart">Add to Cart</button>
+    `;
+
+    container.appendChild(card);
+  });
+}
 }
 
 // ========== EXPORTS ==========
