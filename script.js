@@ -1152,21 +1152,31 @@ function initializeApp() {
 }
 
 function renderBackendProducts(products) {
-  const container = document.getElementById("phones-items");
+  console.log("renderBackendProducts called");
+  console.log("Products received:", products);
 
-  if (!container) return;
+  const section = document.getElementById("phones-items");
+  if (!section) {
+    console.error("phones-items section not found");
+    return;
+  }
+
+  const grid = section.querySelector(".items-grid");
+  if (!grid) {
+    console.error("items-grid not found inside phones-items");
+    return;
+  }
 
   products.forEach((product) => {
     const card = document.createElement("div");
     card.className = "item-card";
+    card.setAttribute("data-keywords", `${product.name}, ${product.description || ""}`);
 
     card.innerHTML = `
-      <div class="item-image">
-        <img src="${product.image || ""}" alt="${product.name}">
-      </div>
-      <div class="item-name">${product.name}</div>
-      <div class="item-price">$${product.price}</div>
-      <div class="quantity-controls">
+      <img src="${product.image || "https://via.placeholder.com/300x300?text=Aridii+Tech"}" alt="${product.name}" />
+      <p class="item-name">${product.name}</p>
+      <p class="item-price">$${Number(product.price).toFixed(2)}</p>
+      <div class="quantity-container">
         <button class="qty-btn minus">-</button>
         <input type="number" class="qty-input" value="1" min="1">
         <button class="qty-btn plus">+</button>
@@ -1174,9 +1184,10 @@ function renderBackendProducts(products) {
       <button class="add-to-cart">Add to Cart</button>
     `;
 
-    container.appendChild(card);
+    grid.appendChild(card);
   });
-}
+
+  console.log("Products appended successfully");
 }
 
 // ========== EXPORTS ==========
