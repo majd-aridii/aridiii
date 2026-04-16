@@ -362,7 +362,7 @@ function renderProducts() {
     <tr>
       <td>
         ${product.image
-        ? `<img src="${escapeHtml(getImageUrl(product.image))}" alt="${escapeHtml(product.name || "Product")}" class="table-image">`
+            ? `<img src="${escapeHtml(getImageUrl(product.image))}" alt="${escapeHtml(product.name || "Product")}" class="table-image" loading="lazy" onerror="this.src='images/default-product.png'">`
             : `<span class="muted">No image</span>`
         }
       </td>
@@ -393,7 +393,7 @@ function renderCategories() {
     <tr>
       <td>
         ${category.image
-        ? `<img src="${escapeHtml(getImageUrl(category.image))}" alt="${escapeHtml(category.name)}" class="table-image">`
+            ? `<img src="${escapeHtml(getImageUrl(category.image))}" alt="${escapeHtml(category.name)}" class="table-image" loading="lazy" onerror="this.src='images/default-category.png'">`
             : `<span class="muted">No image</span>`
         }
       </td>
@@ -421,7 +421,7 @@ function renderSubcategories() {
     <tr>
       <td>
         ${subcategory.image
-        ? `<img src="${escapeHtml(getImageUrl(subcategory.image))}" alt="${escapeHtml(subcategory.name)}" class="table-image">`
+            ? `<img src="${escapeHtml(getImageUrl(subcategory.image))}" alt="${escapeHtml(subcategory.name)}" class="table-image" loading="lazy" onerror="this.src='images/default-category.png'">`
             : `<span class="muted">No image</span>`
         }
       </td>
@@ -684,48 +684,31 @@ function resetProductForm() {
     setPreview("productImagePreview", "");
 }
 
-async function deleteProduct(id) {
-    if (!confirm("Delete this product?")) return;
-
+async function refreshAll() {
     try {
-        await apiSend(`${API_BASE}/products/${id}`, "DELETE", {});
-        await refreshAll();
-        resetProductForm();
+        // Load the most important data first
+        await loadCategories();
+        populateCategorySelects();
+        renderCategories();
+
+        await loadSubcategories();
+        populateSubcategorySelects();
+        renderSubcategories();
+
+        // Load the rest after categories/subcategories are already visible
+        const [ordersData, productsData, couponsData] = await Promise.all([
+            loadOrders(),
+            loadProducts(),
+            loadCoupons()
+        ]);
+
+        renderOrders();
+        renderProducts();
+        renderCoupons();
+        updateDashboardStats();
     } catch (error) {
-        alert(error.message);
-    }
-}
-
-async function saveCoupon() {
-    try {
-        const id = document.getElementById("couponId").value;
-        const expiresAtValue = document.getElementById("couponExpiresAt").value;
-
-        const payload = {
-            code: document.getElementById("couponCode").value.trim(),
-            discountType: document.getElementById("couponDiscountType").value,
-            discountValue: Number(document.getElementById("couponDiscountValue").value),
-            minOrderAmount: Number(document.getElementById("couponMinOrderAmount").value || 0),
-            expiresAt: expiresAtValue ? new Date(expiresAtValue).toISOString() : null,
-            isActive: document.getElementById("couponIsActive").value === "true"
-        };
-
-        if (!payload.code || Number.isNaN(payload.discountValue)) {
-            return alert("Coupon code and discount value are required");
-        }
-
-        if (id) {
-            await apiSend(`${API_BASE}/coupons/${id}`, "PUT", payload);
-            alert("Coupon updated successfully");
-        } else {
-            await apiSend(`${API_BASE}/coupons`, "POST", payload);
-            alert("Coupon created successfully");
-        }
-
-        resetCouponForm();
-        await refreshAll();
-    } catch (error) {
-        alert(error.message);
+        console.error(error);
+        alert("Failed to load dashboard data: " + error.message);
     }
 }
 
