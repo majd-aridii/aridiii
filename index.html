@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,6 +36,7 @@
 </head>
 
 <body>
+
     <!-- ===== HEADER ===== -->
     <header class="header">
         <div class="topbar">
@@ -82,14 +82,14 @@
 
     <!-- ===== MAIN CATEGORIES ===== -->
     <main class="categories">
-  <h2>Choose a Category</h2>
+        <h2>Choose a Category</h2>
 
-  <div class="category-grid main-categories" id="dynamicMainCategories"></div>
+        <div class="category-grid main-categories" id="dynamicMainCategories"></div>
 
-  <div id="dynamicSubcategoriesContainer"></div>
+        <div id="dynamicSubcategoriesContainer"></div>
 
-  <div id="dynamicItemsContainer"></div>
-</main>
+        <div id="dynamicItemsContainer"></div>
+    </main>
 
     <!-- ===== PROMOTIONAL ELEMENTS ===== -->
     <div class="prize-box" onclick="openPrizeModal()">
@@ -99,14 +99,20 @@
     <div id="prizeModal" class="prize-modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closePrizeModal()">&times;</span>
+
             <div class="gold-icon">
                 <i class="fas fa-gift"></i>
             </div>
-            <div class="prize-quote">Ramadan Kareem from Aridii Tech</div>
+
+            <div class="prize-quote" id="popupTitle">Ramadan Kareem from Aridii Tech</div>
+
             <div class="prize-image">
-                <img src="images/ramadan.png" alt="Gold Prizes - Aridii Tech" id="prizePhoto">
+                <img src="images/ramadan.png" alt="Popup Banner" id="popupImage">
             </div>
-            <button class="continue-btn" onclick="closePrizeModal()">Start Shopping</button>
+
+            <a href="#" id="popupButton" class="continue-btn" onclick="closePrizeModal()">
+                Start Shopping
+            </a>
         </div>
     </div>
 
@@ -176,35 +182,42 @@
                 <img src="images/whishmoney.webp" alt="Wish Money Payment Lebanon" />
                 <p>Whish Money</p>
             </div>
+
             <div class="payment-card" data-info="You can pay securely via OMT transfer. Visit any OMT branch to complete your payment." data-keywords="omt, money transfer, western union, lebanon payment">
                 <img src="images/omt.webp" alt="OMT Payment Lebanon" />
                 <p>OMT</p>
             </div>
+
             <div class="payment-card" data-info="Cash payments are accepted hand to hand or upon delivery." data-keywords="cash payment, cash on delivery, lebanon cash">
                 <img src="images/cash.jpg" alt="Cash Payment Lebanon" />
                 <p>Cash</p>
             </div>
         </div>
+
         <div id="payment-info" class="payment-info"></div>
     </section>
 
     <!-- ===== SOCIAL MEDIA LINKS ===== -->
     <footer class="footer">
         <h2>Follow Us</h2>
+
         <div class="social-links">
-            <a href="https://www.facebook.com/profile.php?id=61578574843661" target="_blank" class="social-card" data-keywords="aridii tech facebook, facebook page, social media">
+            <a href="https://www.facebook.com/profile.php?id=61578574843661" target="_blank" class="social-card">
                 <img src="images/facebook.webp" alt="Aridii Tech Facebook Page" />
                 <p>Facebook</p>
             </a>
-            <a href="https://instagram.com/aridii.tech" target="_blank" class="social-card" data-keywords="aridii tech instagram, instagram page, social media">
+
+            <a href="https://instagram.com/aridii.tech" target="_blank" class="social-card">
                 <img src="images/instagram.jpg" alt="Aridii Tech Instagram" />
                 <p>Instagram</p>
             </a>
-            <a href="https://wa.me/96171450495" target="_blank" class="social-card" data-keywords="aridii tech whatsapp, contact us, customer service">
+
+            <a href="https://wa.me/96171450495" target="_blank" class="social-card">
                 <img src="images/whatsapp.png" alt="Aridii Tech WhatsApp" />
                 <p>WhatsApp</p>
             </a>
         </div>
+
         <p>&copy; 2025 Aridii Tech. All Rights Reserved.</p>
     </footer>
 
