@@ -8,6 +8,7 @@ console.log("NEW SCRIPT LOADED");
 let backendCategories = [];
 let backendSubcategories = [];
 let backendProducts = [];
+let popupBannerData = null;
 
 function slugify(text) {
   return String(text || "")
@@ -1104,6 +1105,22 @@ categoryCards?.forEach((card) => {
 }
 
 
+async function loadPopupBanner() {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/popup-banner`);
+    const data = await res.json();
+
+    if (!data.success || !data.popupBanner) {
+      return;
+    }
+
+    popupBannerData = data.popupBanner;
+  } catch (error) {
+    console.error("Error loading popup banner:", error);
+  }
+}
+
+
 async function loadStoreData() {
   try {
     const [categoriesRes, subcategoriesRes, productsRes] = await Promise.all([
@@ -1286,26 +1303,64 @@ function renderDynamicStore() {
 }
 
 
-// ========== INIT ==========
+function applyPopupBanner() {
+  if (!popupBannerData || popupBannerData.isActive !== true) {
+    return;
+  }
+
+  const popupTitle = document.getElementById("popupTitle");
+  const popupImage = document.getElementById("popupImage");
+  const popupButton = document.getElementById("popupButton");
+  const prizeModalImage = document.querySelector("#prizeModal img");
+
+  if (popupTitle) {
+    popupTitle.textContent = popupBannerData.title || "";
+  }
+
+  if (popupImage) {
+    popupImage.src = popupBannerData.image || "";
+    popupImage.alt = popupBannerData.title || "Popup Banner";
+  }
+
+  if (prizeModalImage && popupBannerData.image) {
+    prizeModalImage.src = popupBannerData.image;
+    prizeModalImage.alt = popupBannerData.title || "Popup Banner";
+  }
+
+  if (popupButton) {
+    popupButton.textContent = popupBannerData.buttonText || "Start Shopping";
+    popupButton.href = popupBannerData.buttonLink || "#";
+  }
+}
+
+
+// ========== INIT ========== //
 async function initializeApp() {
-  await loadStoreData();
+  await Promise.all([
+    loadStoreData(),
+    loadPopupBanner()
+  ]);
 
   setupEventListeners();
 
-  // refresh dynamic elements after rendering
   categoryCards = document.querySelectorAll(".category-card");
   subcategories = document.querySelectorAll(".subcategories");
   items = document.querySelectorAll(".items");
+
+  applyPopupBanner();
 
   showMainCategories();
   updateCartDisplay();
   hideAllProviderItems();
   startSlider();
 
-  setTimeout(openPrizeModal, 800);
+  if (popupBannerData && popupBannerData.isActive === true) {
+    setTimeout(openPrizeModal, 800);
+  }
 
   syncHistory(true);
 }
+
 
 // ========== EXPORTS ==========
 window.showItems = showItems;
