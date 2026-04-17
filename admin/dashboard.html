@@ -14,7 +14,6 @@
         }
     </script>
 
-    <!-- Preload fallback images -->
     <div style="display:none;">
         <img src="images/default-product.jpeg" alt="" />
         <img src="images/default-category.jpeg" alt="" />
@@ -35,6 +34,7 @@
                 <button class="menu-btn" data-target="categoriesPanel">Categories</button>
                 <button class="menu-btn" data-target="subcategoriesPanel">Subcategories</button>
                 <button class="menu-btn" data-target="couponsPanel">Coupons</button>
+                <button class="menu-btn" data-target="popupBannerPanel">Popup Banner</button>
                 <button class="menu-btn" data-target="reportsPanel">Reports</button>
             </div>
         </aside>
@@ -317,6 +317,32 @@
                                 </thead>
                                 <tbody id="couponsTableBody"></tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel" id="popupBannerPanel">
+                <div class="panel-header">
+                    <h3>Popup Banner</h3>
+                </div>
+
+                <div class="forms-grid">
+                    <div class="form-card">
+                        <h4>Popup Settings</h4>
+                        <div class="form-grid">
+                            <input type="text" id="popupTitle" placeholder="Popup title" />
+                            <input type="file" id="popupImage" accept="image/*" />
+                            <img id="popupImagePreview" class="form-image-preview" style="display:none;" alt="Popup Preview" />
+                            <input type="text" id="popupButtonText" placeholder="Button text" />
+                            <input type="text" id="popupButtonLink" placeholder="Button link" />
+                            <select id="popupIsActive">
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-gold" onclick="savePopupBanner()">Save Popup Banner</button>
                         </div>
                     </div>
                 </div>
