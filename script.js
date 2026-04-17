@@ -1,4 +1,4 @@
-// ========== GLOBAL VARIABLES ==========
+// ========== GLOBAL VARIABLES =========
 let cart = [];
 let navStack = [];
 let slideIndex = 0;
