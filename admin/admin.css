@@ -685,3 +685,14 @@ td {
         height: 80px;
     }
 }
+
+#popupBannerPanel .form-card {
+    max-width: 700px;
+}
+
+#popupBannerPanel .form-image-preview {
+    max-width: 220px;
+    max-height: 220px;
+    object-fit: cover;
+    border-radius: 14px;
+}
