@@ -1,4 +1,4 @@
-const API_BASE = "https://aridiitech-backend.onrender.com/api";
+const API_BASE = "http://localhost:5000/api";
 
 let orders = [];
 let products = [];
