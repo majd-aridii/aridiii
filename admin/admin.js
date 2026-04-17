@@ -1,4 +1,5 @@
 const API_BASE = "https://aridiitech-backend.onrender.com/api";
+
 let orders = [];
 let products = [];
 let categories = [];
@@ -683,34 +684,6 @@ function resetProductForm() {
     setPreview("productImagePreview", "");
 }
 
-async function refreshAll() {
-    try {
-        // Load the most important data first
-        await loadCategories();
-        populateCategorySelects();
-        renderCategories();
-
-        await loadSubcategories();
-        populateSubcategorySelects();
-        renderSubcategories();
-
-        // Load the rest after categories/subcategories are already visible
-        const [ordersData, productsData, couponsData] = await Promise.all([
-            loadOrders(),
-            loadProducts(),
-            loadCoupons()
-        ]);
-
-        renderOrders();
-        renderProducts();
-        renderCoupons();
-        updateDashboardStats();
-    } catch (error) {
-        console.error(error);
-        alert("Failed to load dashboard data: " + error.message);
-    }
-}
-
 function editCoupon(id) {
     const coupon = coupons.find((c) => c._id === id);
     if (!coupon) return;
@@ -753,6 +726,43 @@ async function deleteCoupon(id) {
         await apiSend(`${API_BASE}/coupons/${id}`, "DELETE", {});
         await refreshAll();
         resetCouponForm();
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+async function saveCoupon() {
+    try {
+        const id = document.getElementById("couponId").value;
+        const expiresAtValue = document.getElementById("couponExpiresAt").value;
+
+        const payload = {
+            code: document.getElementById("couponCode").value.trim(),
+            discountType: document.getElementById("couponDiscountType").value,
+            discountValue: Number(document.getElementById("couponDiscountValue").value),
+            minOrderAmount: Number(document.getElementById("couponMinOrderAmount").value || 0),
+            expiresAt: expiresAtValue ? new Date(expiresAtValue).toISOString() : null,
+            isActive: document.getElementById("couponIsActive").value === "true"
+        };
+
+        if (!payload.code) {
+            return alert("Coupon code is required");
+        }
+
+        if (Number.isNaN(payload.discountValue) || payload.discountValue < 0) {
+            return alert("Valid discount value is required");
+        }
+
+        if (id) {
+            await apiSend(`${API_BASE}/coupons/${id}`, "PUT", payload);
+            alert("Coupon updated successfully");
+        } else {
+            await apiSend(`${API_BASE}/coupons`, "POST", payload);
+            alert("Coupon created successfully");
+        }
+
+        resetCouponForm();
+        await refreshAll();
     } catch (error) {
         alert(error.message);
     }
@@ -848,6 +858,46 @@ function exportOrdersCSV() {
     URL.revokeObjectURL(url);
 }
 
+async function loadPopupBanner() {
+    try {
+        const data = await apiGet(`${API_BASE}/popup-banner`);
+
+        if (!data.popupBanner) return;
+
+        document.getElementById("popupTitle").value = data.popupBanner.title || "";
+        document.getElementById("popupButtonText").value = data.popupBanner.buttonText || "";
+        document.getElementById("popupButtonLink").value = data.popupBanner.buttonLink || "";
+        document.getElementById("popupIsActive").value = String(data.popupBanner.isActive);
+        document.getElementById("popupImage").value = "";
+
+        setPreview("popupImagePreview", data.popupBanner.image || "");
+    } catch (error) {
+        console.error("Failed to load popup banner:", error);
+    }
+}
+
+async function savePopupBanner() {
+    try {
+        const formData = new FormData();
+
+        formData.append("title", document.getElementById("popupTitle").value.trim());
+        formData.append("buttonText", document.getElementById("popupButtonText").value.trim());
+        formData.append("buttonLink", document.getElementById("popupButtonLink").value.trim());
+        formData.append("isActive", document.getElementById("popupIsActive").value);
+
+        const imageFile = document.getElementById("popupImage").files[0];
+        if (imageFile) {
+            formData.append("image", imageFile);
+        }
+
+        await apiSend(`${API_BASE}/popup-banner`, "PUT", formData);
+        alert("Popup banner saved successfully");
+        await loadPopupBanner();
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
 async function refreshAll() {
     try {
         await Promise.all([
@@ -855,7 +905,8 @@ async function refreshAll() {
             loadProducts(),
             loadCategories(),
             loadSubcategories(),
-            loadCoupons()
+            loadCoupons(),
+            loadPopupBanner()
         ]);
 
         populateCategorySelects();
@@ -875,5 +926,6 @@ async function refreshAll() {
 bindFilePreview("categoryImage", "categoryImagePreview");
 bindFilePreview("subcategoryImage", "subcategoryImagePreview");
 bindFilePreview("productImage", "productImagePreview");
+bindFilePreview("popupImage", "popupImagePreview");
 
 refreshAll();
