@@ -3252,3 +3252,92 @@ footer, .footer {
     object-fit: cover !important;
   }
 }
+/* =========================================================
+   FINAL FIX — PHONES & ACCESSORIES PORTRAIT PRODUCTS
+   Works with dynamic IDs:
+   - phones-and-accessories-items
+   - phones-accessories-items
+   - phone-accessories-items
+   and with JS class: .phone-accessory
+   ========================================================= */
+#phones-and-accessories-items .items-grid,
+#phones-accessories-items .items-grid,
+#phone-accessories-items .items-grid{
+  display:grid !important;
+  grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)) !important;
+  gap:16px !important;
+}
+
+#phones-and-accessories-items .item-card,
+#phones-accessories-items .item-card,
+#phone-accessories-items .item-card,
+.item-card.phone-accessory{
+  width:100% !important;
+  min-height:360px !important;
+  padding:12px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:space-between !important;
+  align-items:center !important;
+  background:rgba(255,255,255,.04) !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+  border-radius:18px !important;
+  box-shadow:0 14px 30px rgba(0,0,0,.45) !important;
+}
+
+#phones-and-accessories-items .item-card img,
+#phones-accessories-items .item-card img,
+#phone-accessories-items .item-card img,
+.item-card.phone-accessory img{
+  width:100% !important;
+  height:230px !important;
+  max-height:230px !important;
+  aspect-ratio:auto !important;
+  object-fit:cover !important;
+  object-position:center !important;
+  display:block !important;
+  padding:0 !important;
+  background:transparent !important;
+  border:1px solid rgba(245,197,66,.45) !important;
+  border-radius:16px !important;
+  box-shadow:
+    0 0 10px rgba(245,197,66,.28),
+    0 0 26px rgba(245,197,66,.14) !important;
+}
+
+#phones-and-accessories-items .item-name,
+#phones-accessories-items .item-name,
+#phone-accessories-items .item-name,
+.item-card.phone-accessory .item-name{
+  min-height:38px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  line-height:1.2 !important;
+}
+
+@media (max-width:600px){
+  #phones-and-accessories-items .items-grid,
+  #phones-accessories-items .items-grid,
+  #phone-accessories-items .items-grid{
+    grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
+    gap:12px !important;
+  }
+
+  #phones-and-accessories-items .item-card,
+  #phones-accessories-items .item-card,
+  #phone-accessories-items .item-card,
+  .item-card.phone-accessory{
+    min-height:315px !important;
+    padding:10px !important;
+  }
+
+  #phones-and-accessories-items .item-card img,
+  #phones-accessories-items .item-card img,
+  #phone-accessories-items .item-card img,
+  .item-card.phone-accessory img{
+    height:185px !important;
+    max-height:185px !important;
+    object-fit:cover !important;
+  }
+}
