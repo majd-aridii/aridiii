@@ -1234,8 +1234,9 @@ function renderDynamicStore() {
                   : "https://via.placeholder.com/300x300?text=Aridii+Tech";
 
               itemHtml += `
-                <div class="item-card" data-keywords="${(product.name || "").toLowerCase()} ${(product.description || "").toLowerCase()}">
-                  <img src="${productImage}" alt="${product.name}">
+                <div class="item-card ${slug === 'phones-accessories' ? 'phone-accessory' : ''}" 
+data-keywords="${(product.name || "").toLowerCase()} ${(product.description || "").toLowerCase()}">
+  <img src="${productImage}" alt="${product.name}">
                   <p class="item-name">${product.name}</p>
                   <p class="item-price">$${Number(product.price).toFixed(2)}</p>
                   <div class="quantity-container">
@@ -1278,8 +1279,9 @@ function renderDynamicStore() {
                 : "https://via.placeholder.com/300x300?text=Aridii+Tech";
 
             itemHtml += `
-              <div class="item-card" data-keywords="${(product.name || "").toLowerCase()} ${(product.description || "").toLowerCase()}">
-                <img src="${productImage}" alt="${product.name}">
+              <div class="item-card ${slug === 'phones-accessories' ? 'phone-accessory' : ''}" 
+data-keywords="${(product.name || "").toLowerCase()} ${(product.description || "").toLowerCase()}">
+  <img src="${productImage}" alt="${product.name}">
                 <p class="item-name">${product.name}</p>
                 <p class="item-price">$${Number(product.price).toFixed(2)}</p>
                 <div class="quantity-container">
