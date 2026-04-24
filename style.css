@@ -3239,3 +3239,16 @@ footer, .footer {
     padding: 4px !important;
   }
 }
+.phone-accessory img{
+  width: 100% !important;
+  height: 230px !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  border-radius: 16px !important;
+}
+@media (max-width:600px){
+  .phone-accessory img{
+    height: 190px !important;
+    object-fit: cover !important;
+  }
+}
