@@ -3115,3 +3115,106 @@ footer, .footer {
 }
 
 
+
+
+.section-heading {
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.section-heading h3 {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.9);
+  margin: 0;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.section-heading p {
+  display: none;
+}
+
+.payment-card,
+.social-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 7px 4px;
+  min-height: 68px;
+  border-radius: 10px;
+  transition: 0.25s ease;
+}
+
+.payment-card img,
+.social-card img {
+  width: 26px;
+  height: 26px;
+  object-fit: cover;
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  margin-bottom: 5px;
+}
+
+.payment-card p,
+.social-card p {
+  font-size: 10px;
+  font-weight: 500;
+  margin: 0;
+  color: white;
+  line-height: 1.2;
+}
+
+.payment-card small,
+.social-card small {
+  display: none;
+}
+
+.payment-card:hover,
+.social-card:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+@media (max-width: 768px) {
+  .section-heading h3 {
+    font-size: 9px;
+    letter-spacing: 0.8px;
+  }
+
+  .payment-cards,
+  .social-links {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+
+  .payment-card,
+  .social-card {
+    min-height: 58px;
+    padding: 6px 2px;
+    border-radius: 8px;
+  }
+
+  .payment-card img,
+  .social-card img {
+    width: 22px;
+    height: 22px;
+    margin-bottom: 4px;
+  }
+
+  .payment-card p,
+  .social-card p {
+    font-size: 8px;
+  }
+
+  .footer {
+    padding-bottom: 8px;
+  }
+
+  .footer p,
+  .footer small {
+    font-size: 9px;
+  }
+}
