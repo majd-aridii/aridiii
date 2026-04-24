@@ -3218,3 +3218,24 @@ footer, .footer {
     font-size: 9px;
   }
 }
+
+#phones-items .item-card img{
+  width: 100%;
+  height: 220px !important;
+  object-fit: contain !important;
+  padding: 6px !important;
+  background: transparent !important;
+  border: 1px solid rgba(245,197,66,.45);
+  border-radius: 16px;
+  box-shadow:
+    0 0 10px rgba(245,197,66,.28),
+    0 0 26px rgba(245,197,66,.14);
+}
+
+@media (max-width: 600px){
+  #phones-items .item-card img{
+    height: 180px !important;
+    object-fit: contain !important;
+    padding: 4px !important;
+  }
+}
