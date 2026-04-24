@@ -1234,7 +1234,7 @@ function renderDynamicStore() {
                   : "https://via.placeholder.com/300x300?text=Aridii+Tech";
 
               itemHtml += `
-                <div class="item-card ${slug === 'phones-accessories' ? 'phone-accessory' : ''}" 
+                <div class="item-card ${slug.includes('phone') ? 'phone-accessory' : ''}" 
 data-keywords="${(product.name || "").toLowerCase()} ${(product.description || "").toLowerCase()}">
   <img src="${productImage}" alt="${product.name}">
                   <p class="item-name">${product.name}</p>
@@ -1279,7 +1279,7 @@ data-keywords="${(product.name || "").toLowerCase()} ${(product.description || "
                 : "https://via.placeholder.com/300x300?text=Aridii+Tech";
 
             itemHtml += `
-              <div class="item-card ${slug === 'phones-accessories' ? 'phone-accessory' : ''}" 
+              <div class="item-card ${slug.includes('phone') ? 'phone-accessory' : ''}" 
 data-keywords="${(product.name || "").toLowerCase()} ${(product.description || "").toLowerCase()}">
   <img src="${productImage}" alt="${product.name}">
                 <p class="item-name">${product.name}</p>
