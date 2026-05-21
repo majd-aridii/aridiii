@@ -672,13 +672,16 @@ function closeCartAndShop() {
   closeCart();
 }
 
-function addToCart(itemName, itemPrice, quantity = 1) {
+function addToCart(itemName, itemPrice, quantity = 1, subcategory = "") {
   const existingItemIndex = cart.findIndex(
-    (item) => item.name === itemName && item.price === itemPrice
+    (item) => item.name === itemName && item.price === itemPrice && item.subcategory === subcategory
   );
 
-  if (existingItemIndex !== -1) cart[existingItemIndex].quantity += quantity;
-  else cart.push({ name: itemName, price: itemPrice, quantity });
+  if (existingItemIndex !== -1) {
+    cart[existingItemIndex].quantity += quantity;
+  } else {
+    cart.push({ name: itemName, price: itemPrice, quantity, subcategory });
+  }
 
   updateCartDisplay();
   showCartNotification(`${itemName} added to cart!`);
@@ -793,7 +796,9 @@ async function checkout() {
 
         orderItems.forEach((item) => {
             const itemTotal = item.price * item.quantity;
-            message += `• ${item.name} (Qty: ${item.quantity}) - $${itemTotal.toFixed(2)}\n`;
+            message += `• ${item.name}`;
+if (item.subcategory) message += `\n  Subcategory: ${item.subcategory}`;
+message += `\n  Qty: ${item.quantity} - $${itemTotal.toFixed(2)}\n`;
         });
 
         message += `\nTotal: $${total.toFixed(2)}`;
@@ -860,7 +865,10 @@ function handleAddToCart(e) {
   const price = priceElement ? parseFloat(priceElement.textContent.replace("$", "")) || 0 : 0;
   const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
 
-  if (quantity > 0) addToCart(itemName, price, quantity);
+  const subcategory =
+  card.closest(".items")?.querySelector("h4")?.textContent.trim() || "";
+
+if (quantity > 0) addToCart(itemName, price, quantity, subcategory);
   else showCartNotification("Please check the item quantity");
 }
 
