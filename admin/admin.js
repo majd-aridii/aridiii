@@ -169,13 +169,20 @@ async function loadCoupons() {
 }
 
 function getAnalytics() {
-    const revenue = orders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
+    const completedOrders = orders.filter(
+    (order) => order.status === "completed"
+);
+
+const revenue = completedOrders.reduce(
+    (sum, order) => sum + Number(order.totalAmount || 0),
+    0
+);
     const transactions = orders.length;
     const completed = orders.filter((order) => order.status === "completed").length;
 
     const itemMap = {};
 
-    orders.forEach((order) => {
+    completedOrders.forEach((order) => {
         safeArray(order.items).forEach((item) => {
             const name = item.name || "Unnamed Item";
             const quantity = Number(item.quantity || 1);
