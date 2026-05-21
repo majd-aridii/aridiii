@@ -87,12 +87,20 @@ async function apiGet(url) {
 }
 
 async function apiSend(url, method, body) {
-    const config = { method };
+    const token = localStorage.getItem("adminToken");
+
+    const config = {
+        method,
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    };
 
     if (body instanceof FormData) {
         config.body = body;
     } else {
-        config.headers = { "Content-Type": "application/json" };
+        config.headers["Content-Type"] = "application/json";
+
         if (method !== "DELETE") {
             config.body = JSON.stringify(body);
         }
