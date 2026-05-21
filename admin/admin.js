@@ -87,7 +87,13 @@ async function apiGet(url) {
 }
 
 async function apiSend(url, method, body) {
-    const token = localStorage.getItem("adminToken");
+    const token = localStorage.getItem("adminToken") || localStorage.getItem("token");
+
+    if (!token) {
+        alert("Please login again. Admin token is missing.");
+        window.location.href = "login.html";
+        return;
+    }
 
     const config = {
         method,
