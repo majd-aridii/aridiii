@@ -1313,7 +1313,7 @@ data-keywords="${(product.name || "").toLowerCase()} ${(product.description || "
 }
 
 
-function applyPopupBanner() {
+async function applyPopupBanner() {
   if (!popupBannerData || popupBannerData.isActive !== true) {
     return;
   }
@@ -1323,17 +1323,29 @@ function applyPopupBanner() {
   const popupButton = document.getElementById("popupButton");
   const prizeModalImage = document.querySelector("#prizeModal img");
 
+  const imageUrl = popupBannerData.image || "";
+
+  // preload image before showing it
+  if (imageUrl) {
+    await new Promise((resolve) => {
+      const img = new Image();
+      img.src = imageUrl;
+      img.onload = resolve;
+      img.onerror = resolve;
+    });
+  }
+
   if (popupTitle) {
     popupTitle.textContent = popupBannerData.title || "";
   }
 
   if (popupImage) {
-    popupImage.src = popupBannerData.image || "";
+    popupImage.src = imageUrl;
     popupImage.alt = popupBannerData.title || "Popup Banner";
   }
 
-  if (prizeModalImage && popupBannerData.image) {
-    prizeModalImage.src = popupBannerData.image;
+  if (prizeModalImage && imageUrl) {
+    prizeModalImage.src = imageUrl;
     prizeModalImage.alt = popupBannerData.title || "Popup Banner";
   }
 
