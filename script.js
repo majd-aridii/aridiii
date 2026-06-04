@@ -1369,7 +1369,7 @@ async function initializeApp() {
   subcategories = document.querySelectorAll(".subcategories");
   items = document.querySelectorAll(".items");
 
-  applyPopupBanner();
+  await applyPopupBanner(); // <-- change here
 
   showMainCategories();
   updateCartDisplay();
