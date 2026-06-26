@@ -949,4 +949,6 @@ bindFilePreview("subcategoryImage", "subcategoryImagePreview");
 bindFilePreview("productImage", "productImagePreview");
 bindFilePreview("popupImage", "popupImagePreview");
 
-refreshAll();
+if (document.getElementById("ordersTableBody")) {
+    refreshAll();
+}
