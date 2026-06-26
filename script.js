@@ -757,10 +757,11 @@ async function checkout() {
         total += itemTotal;
 
         return {
-            name: item.name,
-            price: finalPrice,
-            quantity: item.quantity
-        };
+    name: item.name,
+    price: finalPrice,
+    quantity: item.quantity,
+    subcategory: item.subcategory || ""
+};
     });
 
     const customerNameInput = document.getElementById("customerName");
@@ -794,12 +795,19 @@ async function checkout() {
 
         let message = `Hello! I would like to purchase the following items:\n\n`;
 
-        orderItems.forEach((item) => {
-            const itemTotal = item.price * item.quantity;
-            message += `• ${item.name}`;
-if (item.subcategory) message += `\n  Subcategory: ${item.subcategory}`;
-message += `\n  Qty: ${item.quantity} - $${itemTotal.toFixed(2)}\n`;
-        });
+        orderItems.forEach((item, index) => {
+    const itemTotal = item.price * item.quantity;
+
+    message += `📦 Item ${index + 1}\n`;
+    message += `Product: ${item.name}\n`;
+
+    if (item.subcategory) {
+        message += `Subcategory: ${item.subcategory}\n`;
+    }
+
+    message += `Quantity: ${item.quantity}\n`;
+    message += `Price: $${itemTotal.toFixed(2)}\n\n`;
+});
 
         message += `\nTotal: $${total.toFixed(2)}`;
         if (appliedCoupon) message += `\nCoupon: ${appliedCoupon}`;
